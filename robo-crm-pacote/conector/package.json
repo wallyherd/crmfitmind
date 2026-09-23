@@ -1,0 +1,12 @@
+{
+  "name": "fitmind-conector-whatsapp",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Conector de WhatsApp da FitMind, para rodar no PC da academia",
+  "scripts": { "start": "node conector.mjs" },
+  "dependencies": {
+    "@whiskeysockets/baileys": "^6.7.7",
+    "qrcode": "^1.5.4"
+  }
+}
