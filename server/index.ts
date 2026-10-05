@@ -440,23 +440,31 @@ app.post("/api/auth/login", async (req, res) => {
 
   const emailNorm = String(email).trim().toLowerCase();
 
-  // Caso especial: Conta Admin Mestra
-  if (emailNorm === "admin@fitmind.com.br" && password === "fitmind123") {
+  // Caso especial: Conta Admin Mestra (admin@fitmind.com ou admin@fitmind.com.br)
+  const isAdminMasterEmail =
+    emailNorm === "admin@fitmind.com" ||
+    emailNorm === "admin@fitmind.com.br";
+  const isAdminMasterPass =
+    password === "Fitmind123" ||
+    password === "fitmind123";
+
+  if (isAdminMasterEmail && isAdminMasterPass) {
     let { data: adminProfile } = await supabaseAdmin
       .from("profiles")
       .select("*")
-      .eq("email", "admin@fitmind.com.br")
+      .eq("email", emailNorm)
       .maybeSingle();
 
     if (!adminProfile) {
       const { data: novoAdmin } = await supabaseAdmin
         .from("profiles")
         .insert({
-          email: "admin@fitmind.com.br",
+          email: emailNorm,
           name: "Administrador FitMind",
           role: "admin",
           status: "ativo",
           phone: "65996221282",
+          senha_hash: password,
         })
         .select()
         .single();
@@ -464,7 +472,7 @@ app.post("/api/auth/login", async (req, res) => {
     } else if (adminProfile.role !== "admin" || adminProfile.status !== "ativo") {
       await supabaseAdmin
         .from("profiles")
-        .update({ role: "admin", status: "ativo" })
+        .update({ role: "admin", status: "ativo", senha_hash: password })
         .eq("id", adminProfile.id);
       adminProfile.role = "admin";
       adminProfile.status = "ativo";
@@ -473,12 +481,13 @@ app.post("/api/auth/login", async (req, res) => {
     return res.json({
       ok: true,
       user: {
-        id: adminProfile.id,
-        email: adminProfile.email,
-        name: adminProfile.name || "Administrador",
+        id: adminProfile?.id || "admin-master-fitmind",
+        email: emailNorm,
+        name: adminProfile?.name || "Administrador FitMind",
         role: "admin",
         status: "ativo",
-        phone: adminProfile.phone,
+        phone: adminProfile?.phone || "65996221282",
+        created_at: adminProfile?.created_at || new Date().toISOString(),
         expira_em: null,
       },
     });

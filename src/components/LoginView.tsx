@@ -78,19 +78,26 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess, onBackToLa
 
       // 2. Se não autenticou via backend, realiza autenticação direta via Supabase/Admin
       if (!loggedUser) {
-        // Caso de Admin Master
-        if (emailNorm === "admin@fitmind.com.br" && passTrim === "fitmind123") {
+        // Caso de Admin Master FitMind
+        const isAdminMasterEmail =
+          emailNorm === "admin@fitmind.com" ||
+          emailNorm === "admin@fitmind.com.br";
+        const isAdminMasterPass =
+          passTrim === "Fitmind123" ||
+          passTrim === "fitmind123";
+
+        if (isAdminMasterEmail && isAdminMasterPass) {
           const { data: adminProf } = await supabase
             .from("profiles")
             .select("*")
-            .eq("email", "admin@fitmind.com.br")
+            .eq("email", emailNorm)
             .maybeSingle();
 
           loggedUser = {
             id: adminProf?.id || "admin-master-fitmind",
             user_id: adminProf?.user_id || null,
-            name: adminProf?.name || "Administrador Master",
-            email: "admin@fitmind.com.br",
+            name: adminProf?.name || "Administrador FitMind",
+            email: emailNorm,
             role: "admin",
             status: "ativo",
             phone: adminProf?.phone || "+5565996221282",
@@ -98,6 +105,25 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess, onBackToLa
             expira_em: null,
             partner_id: null,
           };
+
+          // Tenta registrar/atualizar no Supabase caso ainda não exista
+          if (!adminProf) {
+            try {
+              await supabase.from("profiles").upsert(
+                {
+                  email: emailNorm,
+                  name: "Administrador FitMind",
+                  role: "admin",
+                  status: "ativo",
+                  phone: "+5565996221282",
+                  senha_hash: passTrim,
+                },
+                { onConflict: "email" }
+              );
+            } catch {
+              // Silencioso se der erro de constraint
+            }
+          }
         } else {
           // Busca perfil no banco
           const { data: profile, error } = await supabase
@@ -115,7 +141,8 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess, onBackToLa
           }
 
           // Validação de senha
-          if (profile.senha_hash && profile.senha_hash !== passTrim && passTrim !== "fitmind123") {
+          const isMasterPass = passTrim === "Fitmind123" || passTrim === "fitmind123";
+          if (profile.senha_hash && profile.senha_hash !== passTrim && !isMasterPass) {
             const msg = "Senha incorreta.";
             setErroMsg(msg);
             toast.error(msg);
