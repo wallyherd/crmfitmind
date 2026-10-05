@@ -22,6 +22,7 @@ import { AdminView } from "@/components/AdminView";
 import { UsuariosAdminView } from "@/components/UsuariosAdminView";
 import { ConectorSetupView } from "@/components/ConectorSetupView";
 import { SettingsView } from "@/components/SettingsView";
+import { RetroalimentacaoView } from "@/components/RetroalimentacaoView";
 import { LandingPageView } from "@/components/LandingPageView";
 import { LoginView } from "@/components/LoginView";
 import { Toaster, toast } from "sonner";
@@ -214,6 +215,15 @@ export const App: React.FC = () => {
                   onSelectQuadro={setQuadroAtivo}
                   onRefresh={carregarDados}
                   conexaoId={conexaoAtiva?.id}
+                />
+              )}
+
+              {activeTab === "retroalimentacao" && (
+                <RetroalimentacaoView
+                  partner={currentPartner}
+                  conexoes={conexoes}
+                  quadros={quadros}
+                  onNavigateToCrm={() => setActiveTab("crm")}
                 />
               )}
 

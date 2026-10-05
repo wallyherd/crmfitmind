@@ -95,6 +95,8 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess, onBackToLa
             status: "ativo",
             phone: adminProf?.phone || "+5565996221282",
             created_at: adminProf?.created_at || new Date().toISOString(),
+            expira_em: null,
+            partner_id: null,
           };
         } else {
           // Busca perfil no banco

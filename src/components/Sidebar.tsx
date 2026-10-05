@@ -9,11 +9,13 @@ import {
   Building2,
   Users,
   Settings,
+  Sparkles,
 } from "lucide-react";
 
 export type TabType =
   | "dashboard"
   | "crm"
+  | "retroalimentacao"
   | "robo"
   | "conversas"
   | "disparos"
@@ -45,6 +47,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   }> = [
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, section: "PRINCIPAL" },
     { id: "crm", label: "Funil de Vendas", icon: KanbanSquare },
+    { id: "retroalimentacao", label: "Retroalimentação IA", icon: Sparkles, section: "INTELIGÊNCIA COMERCIAL" },
     { id: "robo", label: "Robô & Fluxos", icon: Bot, section: "AUTOMAÇÃO & WHATSAPP" },
     { id: "conversas", label: "Central de Chat", icon: MessageSquareText, badge: unreadCount > 0 ? unreadCount : undefined },
     { id: "disparos", label: "Campanhas / Disparos", icon: Megaphone },

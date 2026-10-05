@@ -186,3 +186,51 @@ export interface DisparoAlvo {
   enviado_em: string | null;
   erro_motivo: string | null;
 }
+
+export interface LeadAnalise {
+  nome: string;
+  telefone: string | null;
+  data_hora?: string | null;
+  status_comercial: "venda_ganha" | "perda_venda" | "em_aberto" | "iniciada_nao_finalizada";
+  motivo_status: string;
+  valor_estimado?: number | null;
+  acao_recomendada: "follow_up" | "remarketing" | "recuperacao_perda" | "feedback_pos_venda" | "concluir_atendimento";
+  urgencia: "alta" | "media" | "baixa";
+  mensagem_sugerida: string;
+  pontos_atencao_vendedor: string;
+  resumo_conversa: string;
+}
+
+export interface IaRelatorioDiario {
+  id: string;
+  partner_id: string;
+  data_referencia: string;
+  arquivo_origem: string | null;
+  total_conversas: number;
+  vendas_fechadas: number;
+  perdas_vendas: number;
+  conversas_abertas: number;
+  iniciadas_nao_finalizadas: number;
+  resumo_executivo: string | null;
+  pontos_melhoria: string | null;
+  leads_analisados: LeadAnalise[];
+  status?: string;
+  created_at: string;
+}
+
+export interface IaRetroalimentacaoConfig {
+  id?: string;
+  partner_id: string;
+  github_repo: string | null;
+  github_branch: string | null;
+  github_token: string | null;
+  github_path_pattern: string | null;
+  gemini_api_key: string | null;
+  horario_execucao: string | null;
+  quadro_id: string | null;
+  auto_sincronizar: boolean;
+  ultima_execucao?: string | null;
+  ultimo_status?: string | null;
+  ultimo_erro?: string | null;
+}
+

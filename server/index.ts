@@ -3,6 +3,12 @@ import cors from "cors";
 import dotenv from "dotenv";
 import { supabaseAdmin } from "./supabase";
 import { processarMensagem } from "./bot-engine";
+import {
+  buscarArquivoGitHub,
+  formatarCaminhoGit,
+  analisarConversasComGemini,
+  sincronizarRelatorioComCrm,
+} from "./ai-retroalimentador";
 
 dotenv.config();
 
@@ -768,6 +774,320 @@ app.delete("/api/admin/usuarios/:id", async (req, res) => {
     return res.status(500).json({ erro: err.message });
   }
 });
+
+// ------------------------------------------------------------
+// 4. ROTAS DE RETROALIMENTAÇÃO IA (GITHUB + GEMINI + CRM)
+// ------------------------------------------------------------
+
+// Obter configuração de retroalimentação do parceiro
+app.get("/api/retroalimentacao/config", async (req, res) => {
+  const partnerId = req.query.partnerId as string;
+  if (!partnerId) return res.status(400).json({ erro: "partnerId é obrigatório" });
+
+  try {
+    const { data, error } = await supabaseAdmin
+      .from("ia_retroalimentacao_config")
+      .select("*")
+      .eq("partner_id", partnerId)
+      .maybeSingle();
+
+    if (error && error.code !== "PGRST116") {
+      // Se a tabela ainda não existir no Supabase, retorna config padrão em branco
+      console.warn("Aviso ao ler ia_retroalimentacao_config:", error.message);
+      return res.json({
+        config: {
+          partner_id: partnerId,
+          github_repo: "",
+          github_branch: "main",
+          github_token: "",
+          github_path_pattern: "conversas/{data}.txt",
+          gemini_api_key: "",
+          horario_execucao: "07:30",
+          auto_sincronizar: true,
+        },
+      });
+    }
+
+    return res.json({
+      config: data || {
+        partner_id: partnerId,
+        github_repo: "",
+        github_branch: "main",
+        github_token: "",
+        github_path_pattern: "conversas/{data}.txt",
+        gemini_api_key: "",
+        horario_execucao: "07:30",
+        auto_sincronizar: true,
+      },
+    });
+  } catch (err: any) {
+    return res.status(500).json({ erro: err.message });
+  }
+});
+
+// Salvar / Atualizar configuração de retroalimentação
+app.post("/api/retroalimentacao/config", async (req, res) => {
+  const {
+    partnerId,
+    github_repo,
+    github_branch,
+    github_token,
+    github_path_pattern,
+    gemini_api_key,
+    horario_execucao,
+    quadro_id,
+    auto_sincronizar,
+  } = req.body;
+
+  if (!partnerId) return res.status(400).json({ erro: "partnerId é obrigatório" });
+
+  try {
+    const payload = {
+      partner_id: partnerId,
+      github_repo: github_repo ? String(github_repo).trim() : null,
+      github_branch: github_branch ? String(github_branch).trim() : "main",
+      github_token: github_token ? String(github_token).trim() : null,
+      github_path_pattern: github_path_pattern ? String(github_path_pattern).trim() : "conversas/{data}.txt",
+      gemini_api_key: gemini_api_key ? String(gemini_api_key).trim() : null,
+      horario_execucao: horario_execucao || "07:30",
+      quadro_id: quadro_id || null,
+      auto_sincronizar: auto_sincronizar !== false,
+      updated_at: new Date().toISOString(),
+    };
+
+    const { data: existente } = await supabaseAdmin
+      .from("ia_retroalimentacao_config")
+      .select("id")
+      .eq("partner_id", partnerId)
+      .maybeSingle();
+
+    let resultado;
+    if (existente?.id) {
+      const { data, error } = await supabaseAdmin
+        .from("ia_retroalimentacao_config")
+        .update(payload)
+        .eq("id", existente.id)
+        .select()
+        .single();
+      if (error) throw error;
+      resultado = data;
+    } else {
+      const { data, error } = await supabaseAdmin
+        .from("ia_retroalimentacao_config")
+        .insert(payload)
+        .select()
+        .single();
+      if (error) throw error;
+      resultado = data;
+    }
+
+    return res.json({ ok: true, config: resultado });
+  } catch (err: any) {
+    return res.status(500).json({ erro: err.message });
+  }
+});
+
+// Obter relatórios diários de auditoria
+app.get("/api/retroalimentacao/relatorios", async (req, res) => {
+  const partnerId = req.query.partnerId as string;
+  const dataRef = req.query.data as string;
+  if (!partnerId) return res.status(400).json({ erro: "partnerId é obrigatório" });
+
+  try {
+    let query = supabaseAdmin
+      .from("ia_relatorios_diarios")
+      .select("*")
+      .eq("partner_id", partnerId)
+      .order("created_at", { ascending: false });
+
+    if (dataRef) {
+      query = query.eq("data_referencia", dataRef);
+    }
+
+    const { data, error } = await query.limit(30);
+    if (error && error.code !== "PGRST116") {
+      console.warn("Aviso ao ler ia_relatorios_diarios:", error.message);
+      return res.json({ relatorios: [] });
+    }
+
+    return res.json({ relatorios: data || [] });
+  } catch (err: any) {
+    return res.status(500).json({ erro: err.message });
+  }
+});
+
+// Executar Retroalimentação (via Git ou Upload Manual)
+app.post("/api/retroalimentacao/executar", async (req, res) => {
+  const {
+    partnerId,
+    modo = "github", // "github" | "upload" | "texto"
+    conteudoTxt,
+    nomeArquivo,
+    dataReferencia,
+    quadroId,
+  } = req.body;
+
+  if (!partnerId) return res.status(400).json({ erro: "partnerId é obrigatório" });
+
+  try {
+    // 1. Busca configurações salvas
+    const { data: config } = await supabaseAdmin
+      .from("ia_retroalimentacao_config")
+      .select("*")
+      .eq("partner_id", partnerId)
+      .maybeSingle();
+
+    let textoParaProcessar = "";
+    let nomeFonte = nomeArquivo || "conversas_whatsapp.txt";
+    const dataRefFinal = dataReferencia || new Date().toISOString().split("T")[0];
+
+    if (modo === "github") {
+      if (!config?.github_repo) {
+        return res.status(400).json({
+          erro: "Repositório do GitHub não configurado para este parceiro. Preencha nas configurações.",
+        });
+      }
+
+      const padrao = config.github_path_pattern || "conversas/{data}.txt";
+      nomeFonte = formatarCaminhoGit(padrao, new Date(dataRefFinal + "T12:00:00"));
+
+      textoParaProcessar = await buscarArquivoGitHub({
+        repo: config.github_repo,
+        branch: config.github_branch || "main",
+        caminho: nomeFonte,
+        token: config.github_token,
+      });
+    } else {
+      // Modo upload / texto direto
+      if (!conteudoTxt || String(conteudoTxt).trim().length < 5) {
+        return res.status(400).json({ erro: "Conteúdo do arquivo .txt não fornecido" });
+      }
+      textoParaProcessar = String(conteudoTxt);
+    }
+
+    // 2. Análise com Gemini
+    const relatorio = await analisarConversasComGemini({
+      conteudoTxt: textoParaProcessar,
+      geminiApiKey: config?.gemini_api_key,
+      nomeArquivo: nomeFonte,
+      dataReferencia: dataRefFinal,
+    });
+
+    // 3. Organização e Retroalimentação no CRM
+    const syncRes = await sincronizarRelatorioComCrm({
+      partnerId,
+      relatorio,
+      quadroId: quadroId || config?.quadro_id,
+    });
+
+    // 4. Atualiza status na config
+    if (config?.id) {
+      await supabaseAdmin
+        .from("ia_retroalimentacao_config")
+        .update({
+          ultima_execucao: new Date().toISOString(),
+          ultimo_status: "sucesso",
+          ultimo_erro: null,
+        })
+        .eq("id", config.id);
+    }
+
+    return res.json({
+      ok: true,
+      mensagem: "Retroalimentação IA executada com sucesso!",
+      relatorio,
+      sincronizacao: syncRes,
+    });
+  } catch (err: any) {
+    console.error("Erro na execução da retroalimentação:", err);
+
+    // Registra falha na config
+    try {
+      await supabaseAdmin
+        .from("ia_retroalimentacao_config")
+        .update({
+          ultima_execucao: new Date().toISOString(),
+          ultimo_status: "erro",
+          ultimo_erro: err.message,
+        })
+        .eq("partner_id", partnerId);
+    } catch {}
+
+    return res.status(500).json({ erro: err.message });
+  }
+});
+
+// Agendador automático da manhã (checa a cada 10 minutos se deve rodar a busca do Git)
+setInterval(async () => {
+  try {
+    const agora = new Date();
+    const hora = String(agora.getHours()).padStart(2, "0");
+    const min = String(agora.getMinutes()).padStart(2, "0");
+    const agoraHorario = `${hora}:${min}`;
+    const hojeIso = agora.toISOString().split("T")[0];
+
+    const { data: configs } = await supabaseAdmin
+      .from("ia_retroalimentacao_config")
+      .select("*")
+      .eq("auto_sincronizar", true);
+
+    if (!configs || configs.length === 0) return;
+
+    for (const cfg of configs) {
+      if (!cfg.partner_id || !cfg.github_repo) continue;
+      const horarioCfg = cfg.horario_execucao || "07:30";
+      const jaRodouHoje = cfg.ultima_execucao && cfg.ultima_execucao.startsWith(hojeIso);
+
+      // Roda se atingiu o horário matinal e ainda não rodou hoje
+      if (!jaRodouHoje && agoraHorario >= horarioCfg) {
+        console.log(`[Auto-Retroalimentação] Iniciando rotina matinal para partner ${cfg.partner_id}...`);
+        try {
+          const caminho = formatarCaminhoGit(cfg.github_path_pattern || "conversas/{data}.txt");
+          const conteudoTxt = await buscarArquivoGitHub({
+            repo: cfg.github_repo,
+            branch: cfg.github_branch || "main",
+            caminho,
+            token: cfg.github_token,
+          });
+
+          const relatorio = await analisarConversasComGemini({
+            conteudoTxt,
+            geminiApiKey: cfg.gemini_api_key,
+            nomeArquivo: caminho,
+            dataReferencia: hojeIso,
+          });
+
+          await sincronizarRelatorioComCrm({
+            partnerId: cfg.partner_id,
+            relatorio,
+            quadroId: cfg.quadro_id,
+          });
+
+          await supabaseAdmin
+            .from("ia_retroalimentacao_config")
+            .update({
+              ultima_execucao: agora.toISOString(),
+              ultimo_status: "sucesso",
+              ultimo_erro: null,
+            })
+            .eq("id", cfg.id);
+
+          console.log(`[Auto-Retroalimentação] Concluída com sucesso para partner ${cfg.partner_id}!`);
+        } catch (errSync: any) {
+          console.warn(`[Auto-Retroalimentação] Falha ao executar para partner ${cfg.partner_id}:`, errSync.message);
+          await supabaseAdmin
+            .from("ia_retroalimentacao_config")
+            .update({
+              ultima_execucao: agora.toISOString(),
+              ultimo_status: "erro",
+              ultimo_erro: errSync.message,
+            })
+            .eq("id", cfg.id);
+        }
+      }
+    }
+  } catch {}
+}, 10 * 60 * 1000);
 
 // Health check
 app.get("/api/health", (req, res) => {
