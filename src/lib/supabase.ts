@@ -1,4 +1,4 @@
-const DEFAULT_SUPABASE_URL = "";
+const DEFAULT_SUPABASE_URL = "https://wpoyoiqiybzlwkqryuvw.supabase.co";
 const DEFAULT_SUPABASE_KEY = "";
 
 // Configuração persistida ou variáveis de ambiente
