@@ -167,7 +167,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess, onBackToLa
   return (
     <div className="min-h-screen bg-[#07090e] text-slate-100 flex flex-col justify-between p-6 relative overflow-hidden">
       {/* Background Glows */}
-      <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-emerald-600/10 rounded-full blur-[140px] pointer-events-none -z-10" />
+      <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-red-600/10 rounded-full blur-[140px] pointer-events-none -z-10" />
 
       {/* Top Header */}
       <div className="max-w-md w-full mx-auto flex items-center justify-between">
@@ -207,7 +207,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess, onBackToLa
                 href={WHATSAPP_RENOVAR_URL}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-1.5 pt-2 text-emerald-400 font-bold hover:underline"
+                className="inline-flex items-center gap-1.5 pt-2 text-red-400 font-bold hover:underline"
               >
                 <Smartphone className="w-3.5 h-3.5" /> Renovar Assinatura no WhatsApp
               </a>
@@ -228,7 +228,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess, onBackToLa
                 placeholder="seu.email@empresa.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-900/90 border border-white/10 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-emerald-500 shadow-inner"
+                className="w-full pl-10 pr-4 py-3 rounded-xl bg-black border border-white/15 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-red-500 shadow-inner"
               />
             </div>
           </div>
@@ -243,7 +243,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess, onBackToLa
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-900/90 border border-white/10 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-emerald-500 shadow-inner"
+                className="w-full pl-10 pr-4 py-3 rounded-xl bg-black border border-white/15 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-red-500 shadow-inner"
               />
             </div>
           </div>
@@ -251,7 +251,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess, onBackToLa
           <button
             type="submit"
             disabled={loading}
-            className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 disabled:opacity-50 text-slate-950 font-bold text-xs shadow-lg shadow-emerald-500/25 transition mt-2"
+            className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl bg-red-600 hover:bg-red-500 disabled:opacity-50 text-white font-bold text-xs shadow-lg shadow-red-950/40 transition mt-2"
           >
             {loading ? (
               <>
@@ -272,9 +272,9 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess, onBackToLa
             href={WHATSAPP_URL}
             target="_blank"
             rel="noreferrer"
-            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-emerald-400 border border-emerald-500/20 text-xs font-bold transition"
+            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-black hover:bg-[#121216] text-white border border-white/15 hover:border-red-500/40 text-xs font-bold transition"
           >
-            <Smartphone className="w-4 h-4" />
+            <Smartphone className="w-4 h-4 text-red-500" />
             Cadastrar-se pelo WhatsApp
           </a>
         </div>

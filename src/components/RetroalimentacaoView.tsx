@@ -27,7 +27,6 @@ import {
   HelpCircle,
   X,
   FileCode,
-  ArrowRight,
   Filter,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -319,12 +318,12 @@ export const RetroalimentacaoView: React.FC<RetroalimentacaoViewProps> = ({
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-6">
       {/* 1. Header com Status e Ações */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gradient-to-r from-slate-900 via-[#111625] to-slate-900 border border-emerald-500/20 rounded-2xl p-6 shadow-xl relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none" />
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gradient-to-r from-black via-[#14080a] to-black border border-red-500/30 rounded-2xl p-6 shadow-xl relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-red-600/10 rounded-full blur-3xl pointer-events-none" />
 
         <div className="space-y-1 relative z-10">
           <div className="flex items-center gap-2">
-            <span className="p-2 bg-emerald-500/10 text-emerald-400 rounded-lg border border-emerald-500/30">
+            <span className="p-2 bg-red-500/15 text-red-500 rounded-lg border border-red-500/30">
               <Sparkles className="w-5 h-5 animate-pulse" />
             </span>
             <h1 className="text-2xl font-bold text-white tracking-tight">
@@ -337,18 +336,18 @@ export const RetroalimentacaoView: React.FC<RetroalimentacaoViewProps> = ({
 
           {config?.ultima_execucao && (
             <div className="flex items-center gap-2 pt-1 text-xs text-slate-400">
-              <Clock className="w-3.5 h-3.5 text-emerald-400" />
+              <Clock className="w-3.5 h-3.5 text-red-500" />
               <span>
                 Última auditoria:{" "}
-                <b className="text-slate-200">
+                <b className="text-white">
                   {new Date(config.ultima_execucao).toLocaleString("pt-BR")}
                 </b>
               </span>
               <span
-                className={`px-2 py-0.5 rounded-full font-medium ${
+                className={`px-2 py-0.5 rounded-full font-bold ${
                   config.ultimo_status === "sucesso"
-                    ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
-                    : "bg-rose-500/10 text-rose-400 border border-rose-500/20"
+                    ? "bg-red-500/15 text-red-400 border border-red-500/30"
+                    : "bg-rose-500/20 text-rose-300 border border-rose-500/30"
                 }`}
               >
                 {config.ultimo_status === "sucesso" ? "✓ Atualizado" : "Erro na última execução"}
@@ -361,24 +360,24 @@ export const RetroalimentacaoView: React.FC<RetroalimentacaoViewProps> = ({
         <div className="flex flex-wrap items-center gap-2 relative z-10">
           <button
             onClick={() => setModalConfig(true)}
-            className="flex items-center gap-2 px-3.5 py-2.5 bg-slate-800/80 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-semibold border border-slate-700 transition"
+            className="flex items-center gap-2 px-3.5 py-2.5 bg-[#121216] hover:bg-[#181820] text-white rounded-xl text-xs font-semibold border border-white/10 hover:border-red-500/40 transition"
           >
-            <Sliders className="w-4 h-4 text-slate-400" />
+            <Sliders className="w-4 h-4 text-red-400" />
             Configurar Git & IA
           </button>
 
           <button
             onClick={() => setModalUpload(true)}
-            className="flex items-center gap-2 px-3.5 py-2.5 bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 rounded-xl text-xs font-semibold border border-indigo-500/30 transition"
+            className="flex items-center gap-2 px-3.5 py-2.5 bg-white/[0.05] hover:bg-white/[0.1] text-white rounded-xl text-xs font-semibold border border-white/10 transition"
           >
-            <Upload className="w-4 h-4 text-indigo-400" />
+            <Upload className="w-4 h-4 text-white" />
             Upload Manual .TXT
           </button>
 
           <button
             onClick={executarSincronizacaoGit}
             disabled={executando}
-            className="flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white rounded-xl text-xs font-bold shadow-lg shadow-emerald-900/30 transition"
+            className="flex items-center gap-2 px-4 py-2.5 bg-red-600 hover:bg-red-500 disabled:opacity-50 text-white rounded-xl text-xs font-bold shadow-lg shadow-red-950/40 transition"
           >
             <RefreshCw className={`w-4 h-4 ${executando ? "animate-spin" : ""}`} />
             {executando ? "Auditando com IA..." : "Sincronizar Git Agora"}
@@ -388,10 +387,10 @@ export const RetroalimentacaoView: React.FC<RetroalimentacaoViewProps> = ({
 
       {/* 2. Seletor de Relatórios Salvos / Datas */}
       {relatorios.length > 0 && (
-        <div className="flex items-center justify-between gap-3 bg-[#0d101a] border border-white/5 p-3 rounded-xl">
+        <div className="flex items-center justify-between gap-3 bg-[#0a0a0c] border border-white/10 p-3 rounded-xl">
           <div className="flex items-center gap-2 overflow-x-auto py-1 scrollbar-none">
             <span className="text-xs text-slate-400 flex items-center gap-1 font-semibold pl-2 pr-1">
-              <Calendar className="w-3.5 h-3.5 text-slate-400" /> Datas de Auditoria:
+              <Calendar className="w-3.5 h-3.5 text-red-500" /> Datas de Auditoria:
             </span>
             {relatorios.map((rel) => {
               const selecionado = relatorioAtivo?.id === rel.id;
@@ -401,8 +400,8 @@ export const RetroalimentacaoView: React.FC<RetroalimentacaoViewProps> = ({
                   onClick={() => setRelatorioAtivo(rel)}
                   className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition ${
                     selecionado
-                      ? "bg-emerald-500 text-white font-bold shadow-md shadow-emerald-500/20"
-                      : "bg-slate-800/60 text-slate-300 hover:bg-slate-700/60"
+                      ? "bg-red-600 text-white font-bold shadow-md shadow-red-600/30"
+                      : "bg-[#141418] text-slate-300 hover:bg-[#1a1a20]"
                   }`}
                 >
                   {new Date(rel.data_referencia + "T12:00:00").toLocaleDateString("pt-BR")} (
@@ -415,7 +414,7 @@ export const RetroalimentacaoView: React.FC<RetroalimentacaoViewProps> = ({
           {relatorioAtivo?.arquivo_origem && (
             <span className="hidden lg:flex items-center gap-1 text-[11px] text-slate-400 whitespace-nowrap pr-2">
               <FileCode className="w-3 h-3 text-slate-500" />
-              Fonte: <code className="text-slate-300">{relatorioAtivo.arquivo_origem}</code>
+              Fonte: <code className="text-white font-mono">{relatorioAtivo.arquivo_origem}</code>
             </span>
           )}
         </div>
@@ -426,10 +425,10 @@ export const RetroalimentacaoView: React.FC<RetroalimentacaoViewProps> = ({
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
             {/* Total Analisadas */}
-            <div className="bg-[#0e121d] border border-white/10 rounded-2xl p-4 flex flex-col justify-between hover:border-slate-600 transition">
+            <div className="bg-[#0c0c0f] border border-white/10 rounded-2xl p-4 flex flex-col justify-between hover:border-red-500/40 transition">
               <div className="flex items-center justify-between text-slate-400 mb-2">
                 <span className="text-xs font-semibold">Total de Conversas</span>
-                <span className="p-1.5 bg-blue-500/10 text-blue-400 rounded-lg">
+                <span className="p-1.5 bg-white/10 text-white rounded-lg">
                   <MessageSquare className="w-4 h-4" />
                 </span>
               </div>
@@ -442,66 +441,66 @@ export const RetroalimentacaoView: React.FC<RetroalimentacaoViewProps> = ({
             </div>
 
             {/* Vendas Fechadas */}
-            <div className="bg-[#0e121d] border border-emerald-500/20 rounded-2xl p-4 flex flex-col justify-between hover:border-emerald-500/40 transition">
-              <div className="flex items-center justify-between text-emerald-400 mb-2">
-                <span className="text-xs font-semibold">Vendas Ganhas</span>
-                <span className="p-1.5 bg-emerald-500/10 text-emerald-400 rounded-lg">
+            <div className="bg-[#0c0c0f] border border-red-500/30 rounded-2xl p-4 flex flex-col justify-between hover:border-red-500/60 transition">
+              <div className="flex items-center justify-between text-red-400 mb-2">
+                <span className="text-xs font-semibold text-white">Vendas Ganhas</span>
+                <span className="p-1.5 bg-red-500/15 text-red-500 rounded-lg">
                   <CheckCircle2 className="w-4 h-4" />
                 </span>
               </div>
               <div className="flex items-baseline gap-2">
-                <span className="text-2xl font-black text-emerald-400">
+                <span className="text-2xl font-black text-white">
                   {relatorioAtivo.vendas_fechadas || 0}
                 </span>
-                <span className="text-[11px] text-emerald-500/80">fechamentos</span>
+                <span className="text-[11px] text-red-400 font-bold">fechamentos</span>
               </div>
             </div>
 
             {/* Vendas Perdidas */}
-            <div className="bg-[#0e121d] border border-rose-500/20 rounded-2xl p-4 flex flex-col justify-between hover:border-rose-500/40 transition">
-              <div className="flex items-center justify-between text-rose-400 mb-2">
-                <span className="text-xs font-semibold">Perdas de Venda</span>
-                <span className="p-1.5 bg-rose-500/10 text-rose-400 rounded-lg">
+            <div className="bg-[#0c0c0f] border border-white/10 rounded-2xl p-4 flex flex-col justify-between hover:border-red-500/40 transition">
+              <div className="flex items-center justify-between text-slate-400 mb-2">
+                <span className="text-xs font-semibold text-white">Perdas de Venda</span>
+                <span className="p-1.5 bg-red-500/15 text-red-400 rounded-lg">
                   <XCircle className="w-4 h-4" />
                 </span>
               </div>
               <div className="flex items-baseline gap-2">
-                <span className="text-2xl font-black text-rose-400">
+                <span className="text-2xl font-black text-red-500">
                   {relatorioAtivo.perdas_vendas || 0}
                 </span>
-                <span className="text-[11px] text-rose-500/80">desistências/objeções</span>
+                <span className="text-[11px] text-slate-400">objeções</span>
               </div>
             </div>
 
             {/* Conversas em Aberto */}
-            <div className="bg-[#0e121d] border border-amber-500/20 rounded-2xl p-4 flex flex-col justify-between hover:border-amber-500/40 transition">
-              <div className="flex items-center justify-between text-amber-400 mb-2">
-                <span className="text-xs font-semibold">Em Aberto / Dúvidas</span>
-                <span className="p-1.5 bg-amber-500/10 text-amber-400 rounded-lg">
+            <div className="bg-[#0c0c0f] border border-white/10 rounded-2xl p-4 flex flex-col justify-between hover:border-white/20 transition">
+              <div className="flex items-center justify-between text-slate-400 mb-2">
+                <span className="text-xs font-semibold text-white">Em Aberto / Dúvidas</span>
+                <span className="p-1.5 bg-white/10 text-white rounded-lg">
                   <Clock className="w-4 h-4" />
                 </span>
               </div>
               <div className="flex items-baseline gap-2">
-                <span className="text-2xl font-black text-amber-400">
+                <span className="text-2xl font-black text-white">
                   {relatorioAtivo.conversas_abertas || 0}
                 </span>
-                <span className="text-[11px] text-amber-500/80">aguardam proposta</span>
+                <span className="text-[11px] text-slate-400">aguardam proposta</span>
               </div>
             </div>
 
             {/* Abandonadas / Não Finalizadas */}
-            <div className="bg-[#0e121d] border border-orange-500/20 rounded-2xl p-4 flex flex-col justify-between hover:border-orange-500/40 transition">
-              <div className="flex items-center justify-between text-orange-400 mb-2">
-                <span className="text-xs font-semibold">Iniciadas s/ Fim</span>
-                <span className="p-1.5 bg-orange-500/10 text-orange-400 rounded-lg">
+            <div className="bg-[#0c0c0f] border border-white/10 rounded-2xl p-4 flex flex-col justify-between hover:border-red-500/40 transition">
+              <div className="flex items-center justify-between text-slate-400 mb-2">
+                <span className="text-xs font-semibold text-white">Iniciadas s/ Fim</span>
+                <span className="p-1.5 bg-red-500/15 text-red-400 rounded-lg">
                   <AlertTriangle className="w-4 h-4" />
                 </span>
               </div>
               <div className="flex items-baseline gap-2">
-                <span className="text-2xl font-black text-orange-400">
+                <span className="text-2xl font-black text-white">
                   {relatorioAtivo.iniciadas_nao_finalizadas || 0}
                 </span>
-                <span className="text-[11px] text-orange-500/80">resgate urgente</span>
+                <span className="text-[11px] text-red-400 font-bold">resgate urgente</span>
               </div>
             </div>
           </div>
@@ -509,39 +508,39 @@ export const RetroalimentacaoView: React.FC<RetroalimentacaoViewProps> = ({
           {/* 4. Diagnóstico Executivo & Pontos de Melhoria */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Resumo Executivo */}
-            <div className="bg-[#0e121d] border border-white/10 rounded-2xl p-5 space-y-3">
-              <div className="flex items-center gap-2 text-indigo-400">
-                <TrendingUp className="w-4 h-4" />
-                <h3 className="text-sm font-bold uppercase tracking-wider text-slate-200">
+            <div className="bg-[#0c0c0f] border border-white/10 rounded-2xl p-5 space-y-3">
+              <div className="flex items-center gap-2 text-white">
+                <TrendingUp className="w-4 h-4 text-red-500" />
+                <h3 className="text-sm font-bold uppercase tracking-wider text-white">
                   Diagnóstico Executivo do Dia
                 </h3>
               </div>
-              <div className="text-sm text-slate-300 leading-relaxed whitespace-pre-line bg-black/30 p-4 rounded-xl border border-white/5">
+              <div className="text-sm text-slate-200 leading-relaxed whitespace-pre-line bg-black/50 p-4 rounded-xl border border-white/5">
                 {relatorioAtivo.resumo_executivo || "Nenhum resumo gerado."}
               </div>
             </div>
 
             {/* Pontos de Atenção & Melhoria */}
-            <div className="bg-[#0e121d] border border-amber-500/20 rounded-2xl p-5 space-y-3">
-              <div className="flex items-center gap-2 text-amber-400">
-                <AlertTriangle className="w-4 h-4" />
-                <h3 className="text-sm font-bold uppercase tracking-wider text-slate-200">
+            <div className="bg-[#0c0c0f] border border-red-500/20 rounded-2xl p-5 space-y-3">
+              <div className="flex items-center gap-2 text-red-400">
+                <AlertTriangle className="w-4 h-4 text-red-500" />
+                <h3 className="text-sm font-bold uppercase tracking-wider text-white">
                   O Que a Equipe Precisa Melhorar
                 </h3>
               </div>
-              <div className="text-sm text-amber-200/90 leading-relaxed whitespace-pre-line bg-amber-950/20 p-4 rounded-xl border border-amber-500/10">
+              <div className="text-sm text-slate-200 leading-relaxed whitespace-pre-line bg-red-950/20 p-4 rounded-xl border border-red-500/20">
                 {relatorioAtivo.pontos_melhoria || "Nenhum ponto crítico detectado."}
               </div>
             </div>
           </div>
 
           {/* 5. Lista de Clientes e Fila de Mensagens / Follow-up */}
-          <div className="bg-[#0e121d] border border-white/10 rounded-2xl p-6 space-y-5">
+          <div className="bg-[#0c0c0f] border border-white/10 rounded-2xl p-6 space-y-5">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-white/5">
               <div>
                 <h2 className="text-lg font-bold text-white flex items-center gap-2">
                   <span>Fila de Ação Imediata & Mensagens Recomendadas</span>
-                  <span className="text-xs px-2 py-0.5 bg-emerald-500/20 text-emerald-400 rounded-full font-semibold">
+                  <span className="text-xs px-2 py-0.5 bg-red-500/20 text-red-400 rounded-full font-bold border border-red-500/30">
                     {leadsFiltrados.length} clientes
                   </span>
                 </h2>
@@ -557,7 +556,7 @@ export const RetroalimentacaoView: React.FC<RetroalimentacaoViewProps> = ({
                   placeholder="Buscar cliente, telefone..."
                   value={buscaTexto}
                   onChange={(e) => setBuscaTexto(e.target.value)}
-                  className="bg-black/40 border border-slate-700 text-xs text-slate-200 px-3 py-1.5 rounded-lg focus:outline-none focus:border-emerald-500 w-48"
+                  className="bg-black border border-white/15 text-xs text-white px-3 py-1.5 rounded-lg focus:outline-none focus:border-red-500 w-48"
                 />
               </div>
             </div>
@@ -581,8 +580,8 @@ export const RetroalimentacaoView: React.FC<RetroalimentacaoViewProps> = ({
                   onClick={() => setFiltroStatus(f.id)}
                   className={`px-3 py-1 rounded-lg text-xs font-semibold whitespace-nowrap transition ${
                     filtroStatus === f.id
-                      ? "bg-white/10 text-white border border-white/20"
-                      : "text-slate-400 hover:text-slate-200 hover:bg-white/5"
+                      ? "bg-red-600 text-white font-bold shadow-sm shadow-red-950/40"
+                      : "text-slate-400 hover:text-white hover:bg-white/[0.05]"
                   }`}
                 >
                   {f.rotulo}
@@ -605,27 +604,27 @@ export const RetroalimentacaoView: React.FC<RetroalimentacaoViewProps> = ({
                   const statusConfig = {
                     venda_ganha: {
                       badge: "Venda Ganha",
-                      corBadge: "bg-emerald-500/10 text-emerald-400 border-emerald-500/30",
+                      corBadge: "bg-red-500/15 text-white border-red-500/30",
                       icone: CheckCircle2,
                     },
                     perda_venda: {
                       badge: "Venda Perdida",
-                      corBadge: "bg-rose-500/10 text-rose-400 border-rose-500/30",
+                      corBadge: "bg-rose-500/20 text-rose-300 border-rose-500/40",
                       icone: XCircle,
                     },
                     em_aberto: {
                       badge: "Em Aberto",
-                      corBadge: "bg-amber-500/10 text-amber-400 border-amber-500/30",
+                      corBadge: "bg-white/10 text-white border-white/20",
                       icone: Clock,
                     },
                     iniciada_nao_finalizada: {
                       badge: "Não Finalizada",
-                      corBadge: "bg-orange-500/10 text-orange-400 border-orange-500/30",
+                      corBadge: "bg-red-500/20 text-red-300 border-red-500/40",
                       icone: AlertTriangle,
                     },
                   }[lead.status_comercial] || {
                     badge: "Em Aberto",
-                    corBadge: "bg-slate-500/10 text-slate-400 border-slate-500/30",
+                    corBadge: "bg-white/10 text-white border-white/20",
                     icone: Clock,
                   };
 
@@ -634,13 +633,13 @@ export const RetroalimentacaoView: React.FC<RetroalimentacaoViewProps> = ({
                   return (
                     <div
                       key={cardId}
-                      className="bg-black/30 border border-white/5 hover:border-white/15 rounded-2xl p-5 flex flex-col justify-between space-y-4 transition group"
+                      className="bg-black/60 border border-white/10 hover:border-red-500/30 rounded-2xl p-5 flex flex-col justify-between space-y-4 transition group"
                     >
                       {/* Topo do Lead */}
                       <div className="space-y-2">
                         <div className="flex items-start justify-between gap-2">
                           <div>
-                            <h4 className="text-base font-bold text-white group-hover:text-emerald-300 transition">
+                            <h4 className="text-base font-bold text-white group-hover:text-red-400 transition">
                               {lead.nome || "Cliente WhatsApp"}
                             </h4>
                             {lead.telefone && (
@@ -654,11 +653,11 @@ export const RetroalimentacaoView: React.FC<RetroalimentacaoViewProps> = ({
                             <span
                               className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold border flex items-center gap-1 ${statusConfig.corBadge}`}
                             >
-                              <StatusIcon className="w-3 h-3" />
+                              <StatusIcon className="w-3 h-3 text-red-500" />
                               {statusConfig.badge}
                             </span>
                             {lead.urgencia === "alta" && (
-                              <span className="text-[10px] px-2 py-0.2 font-semibold bg-rose-500/20 text-rose-300 rounded-full">
+                              <span className="text-[10px] px-2 py-0.2 font-bold bg-red-600 text-white rounded-full">
                                 Urgência Alta
                               </span>
                             )}
@@ -666,15 +665,15 @@ export const RetroalimentacaoView: React.FC<RetroalimentacaoViewProps> = ({
                         </div>
 
                         {/* Motivo do Status */}
-                        <div className="bg-slate-900/60 p-3 rounded-xl border border-white/5 text-xs text-slate-300 space-y-1">
-                          <p className="font-semibold text-slate-200">
+                        <div className="bg-[#121216] p-3 rounded-xl border border-white/5 text-xs text-slate-300 space-y-1">
+                          <p className="font-semibold text-white">
                             🔍 Diagnóstico:{" "}
                             <span className="font-normal text-slate-300">
                               {lead.motivo_status}
                             </span>
                           </p>
                           {lead.pontos_atencao_vendedor && (
-                            <p className="text-amber-300/90 text-[11px]">
+                            <p className="text-red-300 text-[11px]">
                               ⚠️ <b>Atenção vendedor:</b> {lead.pontos_atencao_vendedor}
                             </p>
                           )}
@@ -683,11 +682,11 @@ export const RetroalimentacaoView: React.FC<RetroalimentacaoViewProps> = ({
                         {/* Script de Mensagem Sugerido */}
                         <div className="space-y-1">
                           <div className="flex items-center justify-between text-[11px] text-slate-400">
-                            <span className="font-semibold text-emerald-400 flex items-center gap-1">
-                              <Sparkles className="w-3 h-3" /> Script Recomendado para Envio:
+                            <span className="font-bold text-white flex items-center gap-1">
+                              <Sparkles className="w-3 h-3 text-red-500" /> Script Recomendado para Envio:
                             </span>
                           </div>
-                          <div className="bg-emerald-950/20 border border-emerald-500/20 p-3 rounded-xl text-xs text-emerald-100 font-normal leading-relaxed relative">
+                          <div className="bg-red-950/20 border border-red-500/25 p-3 rounded-xl text-xs text-white font-normal leading-relaxed relative">
                             "{lead.mensagem_sugerida}"
                           </div>
                         </div>
@@ -697,11 +696,11 @@ export const RetroalimentacaoView: React.FC<RetroalimentacaoViewProps> = ({
                       <div className="flex items-center justify-between gap-2 pt-2 border-t border-white/5">
                         <button
                           onClick={() => copiarMensagem(cardId, lead.mensagem_sugerida)}
-                          className="flex items-center gap-1 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg transition"
+                          className="flex items-center gap-1 px-3 py-1.5 bg-[#16161c] hover:bg-[#202028] text-white text-xs font-semibold rounded-lg border border-white/10 transition"
                         >
                           {isCopiado ? (
                             <>
-                              <Check className="w-3.5 h-3.5 text-emerald-400" /> Copiado!
+                              <Check className="w-3.5 h-3.5 text-red-400" /> Copiado!
                             </>
                           ) : (
                             <>
@@ -713,16 +712,16 @@ export const RetroalimentacaoView: React.FC<RetroalimentacaoViewProps> = ({
                         <div className="flex items-center gap-2">
                           <button
                             onClick={() => abrirWhatsAppWeb(lead.telefone, lead.mensagem_sugerida)}
-                            className="flex items-center gap-1 px-3 py-1.5 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 text-xs font-semibold rounded-lg border border-emerald-500/30 transition"
+                            className="flex items-center gap-1 px-3 py-1.5 bg-white/[0.05] hover:bg-white/[0.1] text-white text-xs font-semibold rounded-lg border border-white/10 transition"
                             title="Abrir no WhatsApp Web"
                           >
-                            <ExternalLink className="w-3.5 h-3.5" />
+                            <ExternalLink className="w-3.5 h-3.5 text-red-400" />
                             WhatsApp Web
                           </button>
 
                           <button
                             onClick={() => enviarPeloCrm(lead.telefone, lead.mensagem_sugerida)}
-                            className="flex items-center gap-1 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-lg shadow transition"
+                            className="flex items-center gap-1 px-3 py-1.5 bg-red-600 hover:bg-red-500 text-white text-xs font-bold rounded-lg shadow-sm transition"
                             title="Enviar diretamente pela conexão do CRM"
                           >
                             <Send className="w-3.5 h-3.5" />
@@ -739,8 +738,8 @@ export const RetroalimentacaoView: React.FC<RetroalimentacaoViewProps> = ({
         </>
       ) : (
         /* Caso não haja relatório ainda */
-        <div className="bg-[#0e121d] border border-white/10 rounded-2xl p-12 text-center space-y-4">
-          <div className="w-16 h-16 rounded-full bg-emerald-500/10 text-emerald-400 flex items-center justify-center mx-auto border border-emerald-500/20">
+        <div className="bg-[#0c0c0f] border border-white/10 rounded-2xl p-12 text-center space-y-4">
+          <div className="w-16 h-16 rounded-full bg-red-500/15 text-red-500 flex items-center justify-center mx-auto border border-red-500/30">
             <Sparkles className="w-8 h-8" />
           </div>
           <div className="max-w-md mx-auto space-y-2">
@@ -752,13 +751,13 @@ export const RetroalimentacaoView: React.FC<RetroalimentacaoViewProps> = ({
           <div className="flex items-center justify-center gap-3 pt-2">
             <button
               onClick={() => setModalConfig(true)}
-              className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-semibold border border-slate-700 transition"
+              className="px-4 py-2 bg-[#16161c] hover:bg-[#202028] text-white rounded-xl text-xs font-semibold border border-white/10 transition"
             >
               Configurar Repositório Git
             </button>
             <button
               onClick={() => setModalUpload(true)}
-              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-emerald-900/30 transition"
+              className="px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-red-950/40 transition"
             >
               Fazer Upload Manual de .TXT
             </button>
@@ -769,10 +768,10 @@ export const RetroalimentacaoView: React.FC<RetroalimentacaoViewProps> = ({
       {/* MODAL 1: Configuração Git & Gemini */}
       {modalConfig && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#101422] border border-white/15 rounded-2xl w-full max-w-xl p-6 space-y-5 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+          <div className="bg-[#0c0c0f] border border-white/15 rounded-2xl w-full max-w-xl p-6 space-y-5 shadow-2xl relative max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-white/10">
               <div className="flex items-center gap-2">
-                <Sliders className="w-5 h-5 text-emerald-400" />
+                <Sliders className="w-5 h-5 text-red-500" />
                 <h3 className="text-base font-bold text-white">Configurações de Retroalimentação IA</h3>
               </div>
               <button
@@ -794,7 +793,7 @@ export const RetroalimentacaoView: React.FC<RetroalimentacaoViewProps> = ({
                   placeholder="ex: hdsolucoes/whatsapp-conversas"
                   value={formRepo}
                   onChange={(e) => setFormRepo(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-700 text-xs text-white p-2.5 rounded-xl focus:border-emerald-500 outline-none"
+                  className="w-full bg-black border border-white/15 text-xs text-white p-2.5 rounded-xl focus:border-red-500 outline-none"
                   required
                 />
                 <p className="text-[11px] text-slate-400">
@@ -811,7 +810,7 @@ export const RetroalimentacaoView: React.FC<RetroalimentacaoViewProps> = ({
                     placeholder="main"
                     value={formBranch}
                     onChange={(e) => setFormBranch(e.target.value)}
-                    className="w-full bg-slate-900 border border-slate-700 text-xs text-white p-2.5 rounded-xl focus:border-emerald-500 outline-none"
+                    className="w-full bg-black border border-white/15 text-xs text-white p-2.5 rounded-xl focus:border-red-500 outline-none"
                   />
                 </div>
 
@@ -824,7 +823,7 @@ export const RetroalimentacaoView: React.FC<RetroalimentacaoViewProps> = ({
                     placeholder="conversas/{data}.txt"
                     value={formPadrao}
                     onChange={(e) => setFormPadrao(e.target.value)}
-                    className="w-full bg-slate-900 border border-slate-700 text-xs text-white p-2.5 rounded-xl focus:border-emerald-500 outline-none"
+                    className="w-full bg-black border border-white/15 text-xs text-white p-2.5 rounded-xl focus:border-red-500 outline-none"
                   />
                 </div>
               </div>
@@ -843,7 +842,7 @@ export const RetroalimentacaoView: React.FC<RetroalimentacaoViewProps> = ({
                   placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
                   value={formToken}
                   onChange={(e) => setFormToken(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-700 text-xs text-white p-2.5 rounded-xl focus:border-emerald-500 outline-none"
+                  className="w-full bg-black border border-white/15 text-xs text-white p-2.5 rounded-xl focus:border-red-500 outline-none"
                 />
                 <p className="text-[11px] text-slate-400">
                   Necessário para repositórios privados do GitHub (permissão: <code>repo</code> ou{" "}
@@ -861,7 +860,7 @@ export const RetroalimentacaoView: React.FC<RetroalimentacaoViewProps> = ({
                   placeholder="AIzaSyxxxxxxxxxxxxxxxxx (opcional se configurado no servidor)"
                   value={formGeminiKey}
                   onChange={(e) => setFormGeminiKey(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-700 text-xs text-white p-2.5 rounded-xl focus:border-emerald-500 outline-none"
+                  className="w-full bg-black border border-white/15 text-xs text-white p-2.5 rounded-xl focus:border-red-500 outline-none"
                 />
                 <p className="text-[11px] text-slate-400">
                   Obtida gratuitamente no Google AI Studio (aistudio.google.com).
@@ -878,7 +877,7 @@ export const RetroalimentacaoView: React.FC<RetroalimentacaoViewProps> = ({
                     type="time"
                     value={formHorario}
                     onChange={(e) => setFormHorario(e.target.value)}
-                    className="w-full bg-slate-900 border border-slate-700 text-xs text-white p-2.5 rounded-xl focus:border-emerald-500 outline-none"
+                    className="w-full bg-black border border-white/15 text-xs text-white p-2.5 rounded-xl focus:border-red-500 outline-none"
                   />
                 </div>
 
@@ -889,7 +888,7 @@ export const RetroalimentacaoView: React.FC<RetroalimentacaoViewProps> = ({
                   <select
                     value={formQuadroId}
                     onChange={(e) => setFormQuadroId(e.target.value)}
-                    className="w-full bg-slate-900 border border-slate-700 text-xs text-white p-2.5 rounded-xl focus:border-emerald-500 outline-none"
+                    className="w-full bg-black border border-white/15 text-xs text-white p-2.5 rounded-xl focus:border-red-500 outline-none"
                   >
                     {quadros.map((q) => (
                       <option key={q.id} value={q.id}>
@@ -901,15 +900,15 @@ export const RetroalimentacaoView: React.FC<RetroalimentacaoViewProps> = ({
               </div>
 
               {/* Automação Diária Toggle */}
-              <div className="flex items-center gap-3 p-3 bg-slate-900/60 rounded-xl border border-white/5">
+              <div className="flex items-center gap-3 p-3 bg-black/60 rounded-xl border border-white/10">
                 <input
                   type="checkbox"
                   id="autoSyncCheck"
                   checked={formAutoSync}
                   onChange={(e) => setFormAutoSync(e.target.checked)}
-                  className="w-4 h-4 text-emerald-500 rounded bg-slate-800 border-slate-600 focus:ring-emerald-500"
+                  className="w-4 h-4 text-red-600 rounded bg-black border-white/20 focus:ring-red-500"
                 />
-                <label htmlFor="autoSyncCheck" className="text-xs text-slate-300 cursor-pointer">
+                <label htmlFor="autoSyncCheck" className="text-xs text-white cursor-pointer">
                   <b>Executar automaticamente todas as manhãs</b> (o servidor lê o Git no horário
                   estabelecido e atualiza os leads no CRM)
                 </label>
@@ -920,13 +919,13 @@ export const RetroalimentacaoView: React.FC<RetroalimentacaoViewProps> = ({
                 <button
                   type="button"
                   onClick={() => setModalConfig(false)}
-                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-xl"
+                  className="px-4 py-2 bg-[#16161c] hover:bg-[#202028] text-white text-xs font-semibold rounded-xl"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow-lg"
+                  className="px-5 py-2 bg-red-600 hover:bg-red-500 text-white text-xs font-bold rounded-xl shadow-lg"
                 >
                   Salvar Configurações
                 </button>
@@ -939,10 +938,10 @@ export const RetroalimentacaoView: React.FC<RetroalimentacaoViewProps> = ({
       {/* MODAL 2: Upload Manual .TXT */}
       {modalUpload && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#101422] border border-white/15 rounded-2xl w-full max-w-2xl p-6 space-y-5 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+          <div className="bg-[#0c0c0f] border border-white/15 rounded-2xl w-full max-w-2xl p-6 space-y-5 shadow-2xl relative max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-white/10">
               <div className="flex items-center gap-2">
-                <Upload className="w-5 h-5 text-indigo-400" />
+                <Upload className="w-5 h-5 text-red-500" />
                 <h3 className="text-base font-bold text-white">
                   Auditar Arquivo .TXT de Conversas
                 </h3>
@@ -962,7 +961,7 @@ export const RetroalimentacaoView: React.FC<RetroalimentacaoViewProps> = ({
               </p>
 
               {/* Input file */}
-              <div className="border-2 border-dashed border-slate-700 hover:border-indigo-500/50 p-6 rounded-2xl text-center cursor-pointer transition bg-slate-900/40">
+              <div className="border-2 border-dashed border-white/15 hover:border-red-500/50 p-6 rounded-2xl text-center cursor-pointer transition bg-black/40">
                 <input
                   type="file"
                   accept=".txt"
@@ -974,13 +973,13 @@ export const RetroalimentacaoView: React.FC<RetroalimentacaoViewProps> = ({
                   htmlFor="arquivoTxtInput"
                   className="cursor-pointer flex flex-col items-center gap-2"
                 >
-                  <FileText className="w-8 h-8 text-indigo-400" />
+                  <FileText className="w-8 h-8 text-red-500" />
                   <span className="text-xs font-bold text-white">
                     {nomeArquivoManual
                       ? `Arquivo selecionado: ${nomeArquivoManual}`
                       : "Clique aqui para escolher o arquivo .txt"}
                   </span>
-                  <span className="text-[11px] text-slate-500">
+                  <span className="text-[11px] text-slate-400">
                     Suporta arquivos com histórico completo de conversas do dia
                   </span>
                 </label>
@@ -988,7 +987,7 @@ export const RetroalimentacaoView: React.FC<RetroalimentacaoViewProps> = ({
 
               {/* Textarea alternativa */}
               <div className="space-y-1">
-                <label className="text-xs font-semibold text-slate-300">
+                <label className="text-xs font-semibold text-white">
                   Ou cole o conteúdo do texto aqui:
                 </label>
                 <textarea
@@ -996,7 +995,7 @@ export const RetroalimentacaoView: React.FC<RetroalimentacaoViewProps> = ({
                   placeholder={`Exemplo de formato aceito:\n[05/10/2026, 09:15] João Silva (11988887777): Olá, quanto custa o plano?\n[05/10/2026, 09:16] Vendedor: Olá João! Custa R$ 197/mês.\n[05/10/2026, 09:17] João Silva: Achei caro agora...`}
                   value={textoManual}
                   onChange={(e) => setTextoManual(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-700 text-xs font-mono text-slate-200 p-3 rounded-xl focus:border-indigo-500 outline-none"
+                  className="w-full bg-black border border-white/15 text-xs font-mono text-white p-3 rounded-xl focus:border-red-500 outline-none"
                 />
               </div>
 
@@ -1005,7 +1004,7 @@ export const RetroalimentacaoView: React.FC<RetroalimentacaoViewProps> = ({
                 <button
                   type="button"
                   onClick={() => setModalUpload(false)}
-                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-xl"
+                  className="px-4 py-2 bg-[#16161c] hover:bg-[#202028] text-white text-xs font-semibold rounded-xl"
                 >
                   Cancelar
                 </button>
@@ -1013,7 +1012,7 @@ export const RetroalimentacaoView: React.FC<RetroalimentacaoViewProps> = ({
                   type="button"
                   disabled={executando || !textoManual.trim()}
                   onClick={executarUploadManual}
-                  className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-xs font-bold rounded-xl shadow-lg flex items-center gap-2"
+                  className="px-5 py-2 bg-red-600 hover:bg-red-500 disabled:opacity-50 text-white text-xs font-bold rounded-xl shadow-lg flex items-center gap-2"
                 >
                   <Sparkles className="w-4 h-4" />
                   {executando ? "Processando..." : "Auditar e Retroalimentar CRM"}

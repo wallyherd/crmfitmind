@@ -160,7 +160,7 @@ export const App: React.FC = () => {
 
   // 3. Aplicação Principal (Autenticado)
   return (
-    <div className="min-h-screen bg-[#090a0f] text-slate-100 flex flex-col font-['Plus_Jakarta_Sans',sans-serif]">
+    <div className="min-h-screen bg-[#000000] text-white flex flex-col font-['Plus_Jakarta_Sans',sans-serif]">
       <Toaster position="top-right" richColors />
 
       {/* Top Navbar */}
@@ -187,10 +187,10 @@ export const App: React.FC = () => {
         />
 
         {/* Dynamic Center View */}
-        <main className="flex-1 overflow-y-auto bg-[#0b0d14]">
+        <main className="flex-1 overflow-y-auto bg-[#08080a]">
           {loading ? (
-            <div className="h-full flex flex-col items-center justify-center text-slate-500 space-y-3">
-              <Loader2 className="w-8 h-8 text-emerald-400 animate-spin" />
+            <div className="h-full flex flex-col items-center justify-center text-slate-400 space-y-3">
+              <Loader2 className="w-8 h-8 text-red-500 animate-spin" />
               <p className="text-xs font-semibold">Sincronizando com WhatsApp & CRM...</p>
             </div>
           ) : (

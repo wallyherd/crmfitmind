@@ -64,7 +64,7 @@ export const AdminView: React.FC<AdminViewProps> = ({ partners, onRefresh }) => 
       <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-white/10">
         <div>
           <h2 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
-            <Building2 className="w-5 h-5 text-emerald-400" /> Gestão Multi-Tenant de Empresas
+            <Building2 className="w-5 h-5 text-red-500" /> Gestão Multi-Tenant de Empresas
           </h2>
           <p className="text-xs text-slate-400 mt-0.5">
             Cadastre e gerencie clientes da plataforma com isolamento total de dados e regras de permissão.
@@ -73,7 +73,7 @@ export const AdminView: React.FC<AdminViewProps> = ({ partners, onRefresh }) => 
 
         <button
           onClick={() => setModalNovaEmpresa(true)}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold shadow-lg shadow-emerald-500/20 transition"
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-bold shadow-lg shadow-red-600/25 transition"
         >
           <Plus className="w-4 h-4" /> Cadastrar Nova Empresa
         </button>
@@ -90,24 +90,24 @@ export const AdminView: React.FC<AdminViewProps> = ({ partners, onRefresh }) => 
               <div>
                 <h3 className="text-base font-bold text-white">{p.fantasy_name}</h3>
                 <p className="text-xs text-slate-400 flex items-center gap-1.5 mt-1">
-                  <MapPin className="w-3.5 h-3.5 text-emerald-400" />
+                  <MapPin className="w-3.5 h-3.5 text-red-400" />
                   {p.city && p.state ? `${p.city}, ${p.state}` : "Local não informado"}
                 </p>
               </div>
 
-              <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-bold">
+              <span className="px-2.5 py-0.5 rounded-full bg-red-600/20 text-red-300 border border-red-500/30 text-xs font-bold">
                 {p.status}
               </span>
             </div>
 
-            <div className="p-3.5 rounded-2xl bg-slate-900/80 border border-white/5 space-y-2 text-xs">
+            <div className="p-3.5 rounded-2xl bg-black/60 border border-white/5 space-y-2 text-xs">
               <div className="flex justify-between text-slate-400">
                 <span>ID do Parceiro:</span>
                 <span className="font-mono text-[10px] text-slate-300 truncate max-w-[150px]">{p.id}</span>
               </div>
               <div className="flex justify-between text-slate-400">
                 <span>Módulos Ativos:</span>
-                <span className="text-emerald-400 font-semibold">Robô WhatsApp + CRM</span>
+                <span className="text-red-400 font-semibold">Robô WhatsApp + CRM</span>
               </div>
             </div>
           </div>
@@ -138,7 +138,7 @@ export const AdminView: React.FC<AdminViewProps> = ({ partners, onRefresh }) => 
                   placeholder="Ex: Academia Fit Life"
                   value={nomeEmpresa}
                   onChange={(e) => setNomeEmpresa(e.target.value)}
-                  className="w-full rounded-xl bg-slate-900 border border-white/10 px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"
+                  className="w-full rounded-xl bg-slate-900 border border-white/10 px-3 py-2 text-xs text-white focus:outline-none focus:border-red-500"
                 />
               </div>
 
@@ -150,7 +150,7 @@ export const AdminView: React.FC<AdminViewProps> = ({ partners, onRefresh }) => 
                     placeholder="São Paulo"
                     value={cidade}
                     onChange={(e) => setCidade(e.target.value)}
-                    className="w-full rounded-xl bg-slate-900 border border-white/10 px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"
+                    className="w-full rounded-xl bg-slate-900 border border-white/10 px-3 py-2 text-xs text-white focus:outline-none focus:border-red-500"
                   />
                 </div>
                 <div>
@@ -160,7 +160,7 @@ export const AdminView: React.FC<AdminViewProps> = ({ partners, onRefresh }) => 
                     placeholder="SP"
                     value={estado}
                     onChange={(e) => setEstado(e.target.value)}
-                    className="w-full rounded-xl bg-slate-900 border border-white/10 px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"
+                    className="w-full rounded-xl bg-slate-900 border border-white/10 px-3 py-2 text-xs text-white focus:outline-none focus:border-red-500"
                   />
                 </div>
               </div>
@@ -176,7 +176,7 @@ export const AdminView: React.FC<AdminViewProps> = ({ partners, onRefresh }) => 
                 <button
                   type="submit"
                   disabled={salvando}
-                  className="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 text-slate-950 font-bold text-xs"
+                  className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-500 disabled:opacity-50 text-white font-bold text-xs shadow-lg shadow-red-600/25"
                 >
                   {salvando ? "Criando..." : "Criar Empresa"}
                 </button>

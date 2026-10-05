@@ -175,7 +175,7 @@ export const RoboView: React.FC<RoboViewProps> = ({
       <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-white/10">
         <div>
           <h2 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
-            <Bot className="w-5 h-5 text-emerald-400" /> Automação de Atendimento (Robô WhatsApp)
+            <Bot className="w-5 h-5 text-red-500" /> Automação de Atendimento (Robô WhatsApp)
           </h2>
           <p className="text-xs text-slate-400 mt-0.5">
             Gerencie conexões do WhatsApp, menus interativos e fluxos automáticos.
@@ -183,12 +183,12 @@ export const RoboView: React.FC<RoboViewProps> = ({
         </div>
 
         {/* Tab switchers */}
-        <div className="flex items-center gap-1 bg-slate-900 border border-white/10 p-1 rounded-2xl">
+        <div className="flex items-center gap-1 bg-black border border-white/10 p-1 rounded-2xl">
           <button
             onClick={() => setAbaAtiva("conexoes")}
             className={`px-4 py-2 rounded-xl text-xs font-bold transition ${
               abaAtiva === "conexoes"
-                ? "bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/20"
+                ? "bg-red-600 text-white shadow-md shadow-red-600/30"
                 : "text-slate-400 hover:text-white"
             }`}
           >
@@ -198,7 +198,7 @@ export const RoboView: React.FC<RoboViewProps> = ({
             onClick={() => setAbaAtiva("fluxos")}
             className={`px-4 py-2 rounded-xl text-xs font-bold transition ${
               abaAtiva === "fluxos"
-                ? "bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/20"
+                ? "bg-red-600 text-white shadow-md shadow-red-600/30"
                 : "text-slate-400 hover:text-white"
             }`}
           >
@@ -216,7 +216,7 @@ export const RoboView: React.FC<RoboViewProps> = ({
             </h3>
             <button
               onClick={() => setModalNovaConexao(true)}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold shadow-lg shadow-emerald-500/20 transition"
+              className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-bold shadow-lg shadow-red-600/25 transition"
             >
               <Plus className="w-3.5 h-3.5" /> Nova Conexão
             </button>
@@ -260,7 +260,7 @@ export const RoboView: React.FC<RoboViewProps> = ({
                     </div>
                     <div>
                       <span className="text-[11px] text-slate-400 block">Último Batimento</span>
-                      <span className="text-xs font-mono text-emerald-400">
+                      <span className="text-xs font-mono text-red-400">
                         {conexao.visto_em ? new Date(conexao.visto_em).toLocaleTimeString() : "Nunca"}
                       </span>
                     </div>
@@ -273,7 +273,7 @@ export const RoboView: React.FC<RoboViewProps> = ({
                       <span className="text-[10px] text-slate-500">Copiar para o conector</span>
                     </label>
                     <div className="flex items-center gap-2 bg-black/40 border border-white/10 rounded-xl px-3 py-2">
-                      <code className="text-xs text-emerald-400 font-mono truncate flex-1 select-all">
+                      <code className="text-xs text-red-400 font-mono truncate flex-1 select-all">
                         {conexao.webhook_segredo}
                       </code>
                       <button
@@ -282,7 +282,7 @@ export const RoboView: React.FC<RoboViewProps> = ({
                         title="Copiar segredo"
                       >
                         {copiadoId === conexao.id ? (
-                          <Check className="w-4 h-4 text-emerald-400" />
+                          <Check className="w-4 h-4 text-red-400" />
                         ) : (
                           <Copy className="w-4 h-4" />
                         )}
@@ -301,7 +301,7 @@ export const RoboView: React.FC<RoboViewProps> = ({
                 <p>Nenhuma conexão criada ainda.</p>
                 <button
                   onClick={() => setModalNovaConexao(true)}
-                  className="px-4 py-2 rounded-xl bg-emerald-500 text-slate-950 font-bold"
+                  className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold"
                 >
                   Criar Primeira Conexão
                 </button>
@@ -320,7 +320,7 @@ export const RoboView: React.FC<RoboViewProps> = ({
               <h3 className="text-sm font-bold text-white">Fluxos Criados</h3>
               <button
                 onClick={() => setModalNovoFluxo(true)}
-                className="p-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold"
+                className="p-1.5 rounded-lg bg-red-600 hover:bg-red-500 text-white font-bold"
               >
                 <Plus className="w-4 h-4" />
               </button>
@@ -336,7 +336,7 @@ export const RoboView: React.FC<RoboViewProps> = ({
                     onClick={() => setFluxoSelecionado(fluxo)}
                     className={`p-3.5 rounded-2xl border transition cursor-pointer flex items-center justify-between ${
                       isSelected
-                        ? "bg-emerald-500/10 border-emerald-500/40 text-white"
+                        ? "bg-red-600/10 border-red-500/40 text-white"
                         : "bg-white/[0.02] border-white/5 text-slate-300 hover:bg-white/[0.05]"
                     }`}
                   >
@@ -355,7 +355,7 @@ export const RoboView: React.FC<RoboViewProps> = ({
                         alternarStatusFluxo(fluxo);
                       }}
                       className={`p-1.5 rounded-lg text-xs font-semibold ${
-                        fluxo.ativo ? "text-emerald-400 hover:bg-emerald-500/20" : "text-slate-500 hover:bg-white/10"
+                        fluxo.ativo ? "text-red-400 hover:bg-red-500/20" : "text-slate-500 hover:bg-white/10"
                       }`}
                       title={fluxo.ativo ? "Desativar" : "Ativar"}
                     >
@@ -384,7 +384,7 @@ export const RoboView: React.FC<RoboViewProps> = ({
                   </div>
                   <button
                     onClick={() => setModalNovoPasso(true)}
-                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold shadow-lg shadow-emerald-500/20"
+                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-bold shadow-lg shadow-red-600/25"
                   >
                     <Plus className="w-3.5 h-3.5" /> Adicionar Passo
                   </button>
@@ -401,7 +401,7 @@ export const RoboView: React.FC<RoboViewProps> = ({
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
-                            <span className="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xs font-bold font-mono">
+                            <span className="w-6 h-6 rounded-full bg-red-500/20 text-red-400 flex items-center justify-center text-xs font-bold font-mono">
                               {idx + 1}
                             </span>
                             <h4 className="text-xs font-bold text-white">{passo.chave}</h4>
@@ -453,7 +453,7 @@ export const RoboView: React.FC<RoboViewProps> = ({
                   placeholder="Ex: WhatsApp Vendas 01"
                   value={nomeConexao}
                   onChange={(e) => setNomeConexao(e.target.value)}
-                  className="w-full rounded-xl bg-slate-900 border border-white/10 px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"
+                  className="w-full rounded-xl bg-slate-900 border border-white/10 px-3 py-2 text-xs text-white focus:outline-none focus:border-red-500"
                 />
               </div>
 
@@ -463,7 +463,7 @@ export const RoboView: React.FC<RoboViewProps> = ({
                   type="number"
                   value={limiteDiario}
                   onChange={(e) => setLimiteDiario(Number(e.target.value))}
-                  className="w-full rounded-xl bg-slate-900 border border-white/10 px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500 font-mono"
+                  className="w-full rounded-xl bg-slate-900 border border-white/10 px-3 py-2 text-xs text-white focus:outline-none focus:border-red-500 font-mono"
                 />
                 <span className="text-[10px] text-slate-500 mt-1 block">
                   Recomendado: 300 mensagens/dia por chip para prevenir bloqueios.
@@ -480,7 +480,7 @@ export const RoboView: React.FC<RoboViewProps> = ({
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs"
+                  className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold text-xs"
                 >
                   Criar Conexão
                 </button>
@@ -510,7 +510,7 @@ export const RoboView: React.FC<RoboViewProps> = ({
                   placeholder="Ex: Boas-vindas Geral"
                   value={nomeFluxo}
                   onChange={(e) => setNomeFluxo(e.target.value)}
-                  className="w-full rounded-xl bg-slate-900 border border-white/10 px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"
+                  className="w-full rounded-xl bg-slate-900 border border-white/10 px-3 py-2 text-xs text-white focus:outline-none focus:border-red-500"
                 />
               </div>
 
@@ -519,7 +519,7 @@ export const RoboView: React.FC<RoboViewProps> = ({
                 <select
                   value={gatilhoTipo}
                   onChange={(e: any) => setGatilhoTipo(e.target.value)}
-                  className="w-full rounded-xl bg-slate-900 border border-white/10 px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"
+                  className="w-full rounded-xl bg-slate-900 border border-white/10 px-3 py-2 text-xs text-white focus:outline-none focus:border-red-500"
                 >
                   <option value="primeira_mensagem">Primeira Mensagem (Boas-vindas)</option>
                   <option value="palavra_chave">Palavra-chave específica</option>
@@ -536,7 +536,7 @@ export const RoboView: React.FC<RoboViewProps> = ({
                     placeholder="preço, planos, catálogo, cardápio"
                     value={gatilhoValor}
                     onChange={(e) => setGatilhoValor(e.target.value)}
-                    className="w-full rounded-xl bg-slate-900 border border-white/10 px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"
+                    className="w-full rounded-xl bg-slate-900 border border-white/10 px-3 py-2 text-xs text-white focus:outline-none focus:border-red-500"
                   />
                 </div>
               )}
@@ -551,7 +551,7 @@ export const RoboView: React.FC<RoboViewProps> = ({
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs"
+                  className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold text-xs"
                 >
                   Salvar Fluxo
                 </button>
@@ -582,7 +582,7 @@ export const RoboView: React.FC<RoboViewProps> = ({
                     placeholder="Ex: menu_principal"
                     value={passoChave}
                     onChange={(e) => setPassoChave(e.target.value)}
-                    className="w-full rounded-xl bg-slate-900 border border-white/10 px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"
+                    className="w-full rounded-xl bg-slate-900 border border-white/10 px-3 py-2 text-xs text-white focus:outline-none focus:border-red-500"
                   />
                 </div>
                 <div>
@@ -590,7 +590,7 @@ export const RoboView: React.FC<RoboViewProps> = ({
                   <select
                     value={passoTipo}
                     onChange={(e: any) => setPassoTipo(e.target.value)}
-                    className="w-full rounded-xl bg-slate-900 border border-white/10 px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"
+                    className="w-full rounded-xl bg-slate-900 border border-white/10 px-3 py-2 text-xs text-white focus:outline-none focus:border-red-500"
                   >
                     <option value="pergunta">Pergunta com Menu/Opções</option>
                     <option value="mensagem">Apenas Mensagem e Segue</option>
@@ -608,7 +608,7 @@ export const RoboView: React.FC<RoboViewProps> = ({
                   placeholder="Olá! Como podemos te ajudar hoje?&#10;&#10;1 - Conhecer nossos produtos&#10;2 - Falar com atendente"
                   value={passoConteudo}
                   onChange={(e) => setPassoConteudo(e.target.value)}
-                  className="w-full rounded-xl bg-slate-900 border border-white/10 p-3 text-xs text-white focus:outline-none focus:border-emerald-500 resize-none font-sans"
+                  className="w-full rounded-xl bg-slate-900 border border-white/10 p-3 text-xs text-white focus:outline-none focus:border-red-500 resize-none font-sans"
                 />
               </div>
 
@@ -622,7 +622,7 @@ export const RoboView: React.FC<RoboViewProps> = ({
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs"
+                  className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold text-xs"
                 >
                   Salvar Passo
                 </button>

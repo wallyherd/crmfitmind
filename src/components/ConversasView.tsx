@@ -4,13 +4,10 @@ import { supabase } from "@/lib/supabase";
 import {
   MessageSquare,
   Send,
-  User,
-  Phone,
   Bot,
   UserCheck,
   Clock,
   CheckCheck,
-  Check,
   AlertCircle,
   Search,
   RefreshCw,
@@ -51,16 +48,18 @@ export const ConversasView: React.FC<ConversasViewProps> = ({
   };
 
   useEffect(() => {
-    if (conversaAtiva) {
+    if (conversaAtiva?.id) {
       carregarMensagens(conversaAtiva.id);
+      const interval = setInterval(() => carregarMensagens(conversaAtiva.id), 2000);
+      return () => clearInterval(interval);
     }
-  }, [conversaAtiva]);
+  }, [conversaAtiva?.id]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [mensagens]);
 
-  // Alterna entre Bot e Humano
+  // Alterna atendimento entre robô e humano
   const alternarEstadoAtendimento = async () => {
     if (!conversaAtiva) return;
     const novoEstado = conversaAtiva.estado === "humano" ? "bot" : "humano";
@@ -72,30 +71,33 @@ export const ConversasView: React.FC<ConversasViewProps> = ({
         .eq("id", conversaAtiva.id);
 
       if (error) throw error;
+      setConversaAtiva({ ...conversaAtiva, estado: novoEstado });
       toast.success(
         novoEstado === "humano"
-          ? "Atendimento transferido para humano (robô pausado)"
-          : "Robô reativado nesta conversa"
+          ? "Atendimento assumido por humano (Robô pausado)"
+          : "Robô reativado para esta conversa"
       );
-      setConversaAtiva({ ...conversaAtiva, estado: novoEstado });
       onRefresh();
     } catch (err: any) {
-      toast.error(`Erro: ${err.message}`);
+      toast.error(`Erro ao alternar modo: ${err.message}`);
     }
   };
 
-  // Enviar mensagem no WhatsApp
+  // Enviar mensagem humana
   const enviarMensagem = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!conversaAtiva || !textoEnvio.trim()) return;
 
     setEnviando(true);
     try {
+      const conexaoId = conversaAtiva.conexao_id || conexoes[0]?.id;
+      if (!conexaoId) throw new Error("Nenhuma conexão de WhatsApp ativa");
+
       const res = await fetch("/api/bot/disparos/enviar-direta", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          conexaoId: conversaAtiva.conexao_id,
+          conexaoId,
           telefone: conversaAtiva.telefone,
           texto: textoEnvio.trim(),
           cartaoId: conversaAtiva.cartao_id,
@@ -103,12 +105,11 @@ export const ConversasView: React.FC<ConversasViewProps> = ({
       });
 
       const json = await res.json();
-      if (!res.ok) throw new Error(json.erro || "Falha no envio");
+      if (!res.ok) throw new Error(json.erro || "Falha ao enviar");
 
       setTextoEnvio("");
-      // Recarrega conversa
-      await carregarMensagens(conversaAtiva.id);
-      onRefresh();
+      carregarMensagens(conversaAtiva.id);
+      toast.success("Mensagem enviada!");
     } catch (err: any) {
       toast.error(`Erro ao enviar: ${err.message}`);
     } finally {
@@ -120,23 +121,22 @@ export const ConversasView: React.FC<ConversasViewProps> = ({
     const termo = busca.toLowerCase();
     return (
       (c.nome && c.nome.toLowerCase().includes(termo)) ||
-      c.telefone.includes(termo)
+      (c.telefone && c.telefone.includes(termo))
     );
   });
 
   return (
-    <div className="p-6 h-[calc(100vh-4rem)] flex gap-6">
-      {/* Left Column: Lista de Conversas */}
-      <div className="w-80 glass-panel rounded-3xl p-4 flex flex-col border border-white/10">
-        <div className="pb-3 border-b border-white/10 space-y-3">
+    <div className="p-6 h-[calc(100vh-4rem)] flex gap-6 max-w-7xl mx-auto">
+      {/* Left Column: Conversas List */}
+      <div className="w-80 glass-panel rounded-3xl p-4 flex flex-col border border-white/10 overflow-hidden">
+        <div className="space-y-3 pb-3 border-b border-white/10">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-bold text-white flex items-center gap-2">
-              <MessageSquare className="w-4 h-4 text-emerald-400" /> Conversas ({conversas.length})
+              <MessageSquare className="w-4 h-4 text-red-500" /> Central de Chat
             </h3>
             <button
               onClick={onRefresh}
-              className="p-1 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white transition"
-              title="Atualizar conversas"
+              className="p-1.5 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white transition"
             >
               <RefreshCw className="w-3.5 h-3.5" />
             </button>
@@ -149,7 +149,7 @@ export const ConversasView: React.FC<ConversasViewProps> = ({
               placeholder="Buscar por nome ou número..."
               value={busca}
               onChange={(e) => setBusca(e.target.value)}
-              className="w-full pl-8 pr-3 py-1.5 rounded-xl bg-slate-900 border border-white/10 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-emerald-500"
+              className="w-full pl-8 pr-3 py-1.5 rounded-xl bg-black border border-white/10 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-red-500"
             />
           </div>
         </div>
@@ -165,12 +165,12 @@ export const ConversasView: React.FC<ConversasViewProps> = ({
                 onClick={() => setConversaAtiva(c)}
                 className={`p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between ${
                   isSelected
-                    ? "bg-emerald-500/15 border-emerald-500/40 text-white"
+                    ? "bg-red-600/20 border-red-500/40 text-white font-bold shadow-sm shadow-red-950/30"
                     : "bg-white/[0.02] border-white/5 text-slate-300 hover:bg-white/[0.05]"
                 }`}
               >
                 <div className="flex items-center gap-3 overflow-hidden">
-                  <div className="w-9 h-9 shrink-0 rounded-full bg-slate-800 border border-white/10 flex items-center justify-center font-bold text-xs text-emerald-400">
+                  <div className="w-9 h-9 shrink-0 rounded-full bg-black border border-white/10 flex items-center justify-center font-bold text-xs text-red-500">
                     {(c.nome || c.telefone).slice(0, 2).toUpperCase()}
                   </div>
                   <div className="overflow-hidden">
@@ -184,7 +184,7 @@ export const ConversasView: React.FC<ConversasViewProps> = ({
                     className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${
                       c.estado === "humano"
                         ? "bg-amber-500/20 text-amber-300 border border-amber-500/30"
-                        : "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
+                        : "bg-red-500/20 text-red-300 border border-red-500/30"
                     }`}
                   >
                     {c.estado === "humano" ? "Humano" : "Robô"}
@@ -201,13 +201,13 @@ export const ConversasView: React.FC<ConversasViewProps> = ({
       </div>
 
       {/* Right Column: Chat Box */}
-      <div className="flex-1 glass-panel rounded-3xl p-6 flex flex-col border border-white/10 overflow-hidden">
+      <div className="flex-1 glass-panel rounded-3xl p-6 flex flex-col border border-white/10 overflow-hidden bg-black/60">
         {conversaAtiva ? (
           <>
             {/* Header da Conversa */}
             <div className="flex items-center justify-between pb-4 border-b border-white/10">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-sm">
+                <div className="w-10 h-10 rounded-full bg-red-500/20 text-red-500 flex items-center justify-center font-bold text-sm border border-red-500/30">
                   {(conversaAtiva.nome || conversaAtiva.telefone).slice(0, 2).toUpperCase()}
                 </div>
                 <div>
@@ -217,7 +217,7 @@ export const ConversasView: React.FC<ConversasViewProps> = ({
                   <p className="text-xs text-slate-400 font-mono flex items-center gap-2">
                     <span>{conversaAtiva.telefone}</span>
                     <span>•</span>
-                    <span className="text-emerald-400">
+                    <span className="text-red-400 font-semibold">
                       {conversaAtiva.cartao_id ? "Lead Vinculado ao CRM" : "Novo Contato"}
                     </span>
                   </p>
@@ -231,7 +231,7 @@ export const ConversasView: React.FC<ConversasViewProps> = ({
                   className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold border transition ${
                     conversaAtiva.estado === "humano"
                       ? "bg-amber-500/10 border-amber-500/30 text-amber-300 hover:bg-amber-500/20"
-                      : "bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20"
+                      : "bg-red-500/15 border-red-500/30 text-red-400 hover:bg-red-500/25"
                   }`}
                 >
                   {conversaAtiva.estado === "humano" ? (
@@ -241,7 +241,7 @@ export const ConversasView: React.FC<ConversasViewProps> = ({
                     </>
                   ) : (
                     <>
-                      <Bot className="w-4 h-4 text-emerald-400" />
+                      <Bot className="w-4 h-4 text-red-500" />
                       <span>Robô Automático Ativo</span>
                     </>
                   )}
@@ -262,15 +262,15 @@ export const ConversasView: React.FC<ConversasViewProps> = ({
                     <div
                       className={`max-w-lg rounded-2xl p-4 space-y-1.5 shadow-md ${
                         isSaida
-                          ? "bg-gradient-to-tr from-emerald-600 to-teal-500 text-slate-950 rounded-tr-none font-medium"
-                          : "bg-slate-900 border border-white/10 text-white rounded-tl-none"
+                          ? "bg-red-600 text-white rounded-tr-none font-medium shadow-red-950/40"
+                          : "bg-[#101014] border border-white/10 text-white rounded-tl-none"
                       }`}
                     >
                       <p className="text-xs whitespace-pre-wrap leading-relaxed">{msg.corpo}</p>
                       
                       <div
                         className={`flex items-center justify-end gap-1.5 text-[10px] ${
-                          isSaida ? "text-slate-900/80" : "text-slate-500"
+                          isSaida ? "text-white/80" : "text-slate-500"
                         }`}
                       >
                         <span>
@@ -282,11 +282,11 @@ export const ConversasView: React.FC<ConversasViewProps> = ({
                         {isSaida && (
                           <span>
                             {msg.status === "enviada" ? (
-                              <CheckCheck className="w-3.5 h-3.5" />
+                              <CheckCheck className="w-3.5 h-3.5 text-white" />
                             ) : msg.status === "erro" ? (
-                              <AlertCircle className="w-3.5 h-3.5 text-red-700" />
+                              <AlertCircle className="w-3.5 h-3.5 text-red-300" />
                             ) : (
-                              <Clock className="w-3.5 h-3.5" />
+                              <Clock className="w-3.5 h-3.5 text-white/70" />
                             )}
                           </span>
                         )}
@@ -312,12 +312,12 @@ export const ConversasView: React.FC<ConversasViewProps> = ({
                 placeholder="Digite sua resposta no WhatsApp..."
                 value={textoEnvio}
                 onChange={(e) => setTextoEnvio(e.target.value)}
-                className="flex-1 rounded-2xl bg-slate-900 border border-white/10 px-4 py-3 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-emerald-500 shadow-inner"
+                className="flex-1 rounded-2xl bg-black border border-white/10 px-4 py-3 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-red-500 shadow-inner"
               />
               <button
                 type="submit"
                 disabled={enviando || !textoEnvio.trim()}
-                className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 text-slate-950 font-bold text-xs shadow-lg shadow-emerald-500/20 transition"
+                className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-red-600 hover:bg-red-500 disabled:opacity-50 text-white font-bold text-xs shadow-lg shadow-red-950/40 transition"
               >
                 <Send className="w-4 h-4" />
                 {enviando ? "Enviando..." : "Enviar"}
@@ -334,3 +334,5 @@ export const ConversasView: React.FC<ConversasViewProps> = ({
     </div>
   );
 };
+
+export default ConversasView;

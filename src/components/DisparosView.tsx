@@ -195,7 +195,7 @@ export const DisparosView: React.FC<DisparosViewProps> = ({
       <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-white/10">
         <div>
           <h2 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
-            <Megaphone className="w-5 h-5 text-emerald-400" /> Campanhas & Disparos em Massa
+            <Megaphone className="w-5 h-5 text-red-500" /> Campanhas & Disparos em Massa
           </h2>
           <p className="text-xs text-slate-400 mt-0.5">
             Envie mensagens para listas segmentadas com intervalo anti-ban e personalização por nome.
@@ -204,7 +204,7 @@ export const DisparosView: React.FC<DisparosViewProps> = ({
 
         <button
           onClick={() => setModalNovaCampanha(true)}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold shadow-lg shadow-emerald-500/20 transition"
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-bold shadow-lg shadow-red-600/25 transition"
         >
           <Plus className="w-4 h-4" /> Nova Campanha de Disparo
         </button>
@@ -223,7 +223,7 @@ export const DisparosView: React.FC<DisparosViewProps> = ({
                 <span
                   className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
                     camp.status === "concluido"
-                      ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
+                      ? "bg-red-600/20 text-red-300 border border-red-500/30"
                       : camp.status === "em_andamento"
                       ? "bg-blue-500/20 text-blue-400 border border-blue-500/30"
                       : "bg-white/10 text-slate-400"
@@ -239,7 +239,7 @@ export const DisparosView: React.FC<DisparosViewProps> = ({
 
               <div className="flex items-center gap-4 text-xs text-slate-400">
                 <span className="flex items-center gap-1">
-                  <Clock className="w-3.5 h-3.5 text-emerald-400" />
+                  <Clock className="w-3.5 h-3.5 text-red-400" />
                   Intervalo: {camp.intervalo_segundos}s
                 </span>
                 <span>•</span>
@@ -297,7 +297,7 @@ export const DisparosView: React.FC<DisparosViewProps> = ({
                   placeholder="Ex: Oferta Especial de Lançamento"
                   value={nomeCampanha}
                   onChange={(e) => setNomeCampanha(e.target.value)}
-                  className="w-full rounded-xl bg-slate-900 border border-white/10 px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"
+                  className="w-full rounded-xl bg-slate-900 border border-white/10 px-3 py-2 text-xs text-white focus:outline-none focus:border-red-500"
                 />
               </div>
 
@@ -310,7 +310,7 @@ export const DisparosView: React.FC<DisparosViewProps> = ({
                     onClick={() => setOrigemAlvos("coluna_crm")}
                     className={`p-3 rounded-xl border text-xs font-semibold flex items-center gap-2 transition ${
                       origemAlvos === "coluna_crm"
-                        ? "bg-emerald-500/20 border-emerald-500/40 text-emerald-300"
+                        ? "bg-red-600/20 border-red-500/40 text-red-300"
                         : "bg-slate-900 border-white/10 text-slate-400"
                     }`}
                   >
@@ -321,7 +321,7 @@ export const DisparosView: React.FC<DisparosViewProps> = ({
                     onClick={() => setOrigemAlvos("lista_colada")}
                     className={`p-3 rounded-xl border text-xs font-semibold flex items-center gap-2 transition ${
                       origemAlvos === "lista_colada"
-                        ? "bg-emerald-500/20 border-emerald-500/40 text-emerald-300"
+                        ? "bg-red-600/20 border-red-500/40 text-red-300"
                         : "bg-slate-900 border-white/10 text-slate-400"
                     }`}
                   >
@@ -338,7 +338,7 @@ export const DisparosView: React.FC<DisparosViewProps> = ({
                   <select
                     value={colunaSelecionadaId}
                     onChange={(e) => setColunaSelecionadaId(e.target.value)}
-                    className="w-full rounded-xl bg-slate-900 border border-white/10 px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"
+                    className="w-full rounded-xl bg-slate-900 border border-white/10 px-3 py-2 text-xs text-white focus:outline-none focus:border-red-500"
                   >
                     {colunas.map((col) => {
                       const qtd = cartoes.filter((c) => c.coluna_id === col.id && c.contato_telefone).length;
@@ -360,7 +360,7 @@ export const DisparosView: React.FC<DisparosViewProps> = ({
                     placeholder="Ana Souza, 11988887777&#10;Marcos Paulo, 21999998888&#10;11977776666"
                     value={textoListaColada}
                     onChange={(e) => setTextoListaColada(e.target.value)}
-                    className="w-full rounded-xl bg-slate-900 border border-white/10 p-3 text-xs text-white focus:outline-none focus:border-emerald-500 font-mono resize-none"
+                    className="w-full rounded-xl bg-slate-900 border border-white/10 p-3 text-xs text-white focus:outline-none focus:border-red-500 font-mono resize-none"
                   />
                 </div>
               )}
@@ -369,7 +369,7 @@ export const DisparosView: React.FC<DisparosViewProps> = ({
               <div>
                 <div className="flex items-center justify-between mb-1">
                   <label className="text-xs font-semibold text-slate-400">Mensagem do Disparo *</label>
-                  <span className="text-[10px] text-emerald-400">Dica: use &#123;nome&#125; para personalizar</span>
+                  <span className="text-[10px] text-red-400">Dica: use &#123;nome&#125; para personalizar</span>
                 </div>
                 <textarea
                   rows={5}
@@ -377,7 +377,7 @@ export const DisparosView: React.FC<DisparosViewProps> = ({
                   placeholder="Olá {nome}! Tudo bem? Temos uma novidade imperdível para você..."
                   value={mensagemCampanha}
                   onChange={(e) => setMensagemCampanha(e.target.value)}
-                  className="w-full rounded-xl bg-slate-900 border border-white/10 p-3 text-xs text-white focus:outline-none focus:border-emerald-500 resize-none font-sans"
+                  className="w-full rounded-xl bg-slate-900 border border-white/10 p-3 text-xs text-white focus:outline-none focus:border-red-500 resize-none font-sans"
                 />
               </div>
 
@@ -394,7 +394,7 @@ export const DisparosView: React.FC<DisparosViewProps> = ({
                     max={120}
                     value={intervaloSegundos}
                     onChange={(e) => setIntervaloSegundos(Number(e.target.value))}
-                    className="w-20 rounded-lg bg-slate-900 border border-white/10 px-2 py-1 text-xs text-white font-mono text-center focus:outline-none focus:border-emerald-500"
+                    className="w-20 rounded-lg bg-slate-900 border border-white/10 px-2 py-1 text-xs text-white font-mono text-center focus:outline-none focus:border-red-500"
                   />
                   <span className="text-xs text-slate-400">segundos (padrão seguro: 20s)</span>
                 </div>
@@ -402,7 +402,7 @@ export const DisparosView: React.FC<DisparosViewProps> = ({
 
               <div className="flex items-center justify-between pt-2">
                 <span className="text-xs text-slate-400">
-                  Total de contatos: <strong className="text-emerald-400">{alvosEstimados}</strong>
+                  Total de contatos: <strong className="text-red-400">{alvosEstimados}</strong>
                 </span>
 
                 <div className="flex gap-2">
@@ -416,7 +416,7 @@ export const DisparosView: React.FC<DisparosViewProps> = ({
                   <button
                     type="submit"
                     disabled={salvando || alvosEstimados === 0}
-                    className="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 text-slate-950 font-bold text-xs shadow-lg shadow-emerald-500/20"
+                    className="px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 disabled:opacity-50 text-white font-bold text-xs shadow-lg shadow-red-600/25"
                   >
                     {salvando ? "Iniciando..." : "Iniciar Disparos"}
                   </button>

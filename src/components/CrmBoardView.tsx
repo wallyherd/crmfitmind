@@ -237,7 +237,7 @@ export const CrmBoardView: React.FC<CrmBoardViewProps> = ({
                 const found = quadros.find((q) => q.id === e.target.value);
                 if (found) onSelectQuadro(found);
               }}
-              className="bg-slate-900 border border-white/10 text-xs font-semibold text-emerald-400 rounded-xl px-3 py-1.5 focus:outline-none"
+              className="bg-black border border-white/10 text-xs font-semibold text-red-500 rounded-xl px-3 py-1.5 focus:outline-none"
             >
               {quadros.map((q) => (
                 <option key={q.id} value={q.id}>
@@ -251,15 +251,15 @@ export const CrmBoardView: React.FC<CrmBoardViewProps> = ({
         <div className="flex items-center gap-2">
           <button
             onClick={() => setModalImportar(true)}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-white/10 transition"
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#16161c] hover:bg-[#202028] text-white text-xs font-semibold border border-white/10 hover:border-red-500/40 transition"
           >
-            <Upload className="w-3.5 h-3.5 text-emerald-400" />
+            <Upload className="w-3.5 h-3.5 text-red-500" />
             Importar Contatos
           </button>
           {colunas.length > 0 && (
             <button
               onClick={() => abrirNovoCartao(colunas[0].id)}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold shadow-lg shadow-emerald-500/20 transition"
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-bold shadow-lg shadow-red-950/40 transition"
             >
               <Plus className="w-3.5 h-3.5" />
               Novo Lead
@@ -308,14 +308,14 @@ export const CrmBoardView: React.FC<CrmBoardViewProps> = ({
                     <div
                       key={cartao.id}
                       onClick={() => abrirDetalhes(cartao)}
-                      className="glass-card rounded-xl p-3.5 border border-white/5 hover:border-emerald-500/40 transition-all cursor-pointer space-y-2 group shadow-sm"
+                      className="glass-card rounded-xl p-3.5 border border-white/5 hover:border-red-500/40 transition-all cursor-pointer space-y-2 group shadow-sm"
                     >
                       <div className="flex items-start justify-between gap-2">
-                        <h4 className="text-xs font-bold text-white group-hover:text-emerald-300 transition">
+                        <h4 className="text-xs font-bold text-white group-hover:text-red-400 transition">
                           {cartao.titulo}
                         </h4>
                         {cartao.valor && (
-                          <span className="text-[11px] font-bold text-emerald-400 font-mono">
+                          <span className="text-[11px] font-bold text-white font-mono bg-red-500/15 border border-red-500/30 px-1.5 py-0.5 rounded">
                             R$ {cartao.valor.toFixed(2)}
                           </span>
                         )}
@@ -330,7 +330,7 @@ export const CrmBoardView: React.FC<CrmBoardViewProps> = ({
 
                       {cartao.contato_telefone && (
                         <p className="text-[11px] text-slate-400 flex items-center gap-1 font-mono">
-                          <Phone className="w-3 h-3 text-emerald-500" />
+                          <Phone className="w-3 h-3 text-red-500" />
                           {cartao.contato_telefone}
                         </p>
                       )}
@@ -340,7 +340,7 @@ export const CrmBoardView: React.FC<CrmBoardViewProps> = ({
                           <Clock className="w-3 h-3" />
                           {new Date(cartao.created_at).toLocaleDateString()}
                         </span>
-                        <span className="text-emerald-400/80 group-hover:translate-x-0.5 transition-transform flex items-center">
+                        <span className="text-red-400 group-hover:translate-x-0.5 transition-transform flex items-center font-bold">
                           Ver detalhes <ChevronRight className="w-3 h-3" />
                         </span>
                       </div>
@@ -384,7 +384,7 @@ export const CrmBoardView: React.FC<CrmBoardViewProps> = ({
                   placeholder="Ex: Consultoria - Carlos Silva"
                   value={novoTitulo}
                   onChange={(e) => setNovoTitulo(e.target.value)}
-                  className="w-full rounded-xl bg-slate-900 border border-white/10 px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"
+                  className="w-full rounded-xl bg-slate-900 border border-white/10 px-3 py-2 text-xs text-white focus:outline-none focus:border-red-500"
                 />
               </div>
 
@@ -398,7 +398,7 @@ export const CrmBoardView: React.FC<CrmBoardViewProps> = ({
                     placeholder="Carlos Silva"
                     value={novoNome}
                     onChange={(e) => setNovoNome(e.target.value)}
-                    className="w-full rounded-xl bg-slate-900 border border-white/10 px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"
+                    className="w-full rounded-xl bg-slate-900 border border-white/10 px-3 py-2 text-xs text-white focus:outline-none focus:border-red-500"
                   />
                 </div>
                 <div>
@@ -410,7 +410,7 @@ export const CrmBoardView: React.FC<CrmBoardViewProps> = ({
                     placeholder="11999999999"
                     value={novoTelefone}
                     onChange={(e) => setNovoTelefone(e.target.value)}
-                    className="w-full rounded-xl bg-slate-900 border border-white/10 px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500 font-mono"
+                    className="w-full rounded-xl bg-slate-900 border border-white/10 px-3 py-2 text-xs text-white focus:outline-none focus:border-red-500 font-mono"
                   />
                 </div>
               </div>
@@ -423,7 +423,7 @@ export const CrmBoardView: React.FC<CrmBoardViewProps> = ({
                     placeholder="carlos@email.com"
                     value={novoEmail}
                     onChange={(e) => setNovoEmail(e.target.value)}
-                    className="w-full rounded-xl bg-slate-900 border border-white/10 px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"
+                    className="w-full rounded-xl bg-slate-900 border border-white/10 px-3 py-2 text-xs text-white focus:outline-none focus:border-red-500"
                   />
                 </div>
                 <div>
@@ -434,7 +434,7 @@ export const CrmBoardView: React.FC<CrmBoardViewProps> = ({
                     placeholder="1500.00"
                     value={novoValor}
                     onChange={(e) => setNovoValor(e.target.value)}
-                    className="w-full rounded-xl bg-slate-900 border border-white/10 px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500 font-mono"
+                    className="w-full rounded-xl bg-slate-900 border border-white/10 px-3 py-2 text-xs text-white focus:outline-none focus:border-red-500 font-mono"
                   />
                 </div>
               </div>
@@ -448,7 +448,7 @@ export const CrmBoardView: React.FC<CrmBoardViewProps> = ({
                   placeholder="Informações relevantes sobre a negociação..."
                   value={novaDescricao}
                   onChange={(e) => setNovaDescricao(e.target.value)}
-                  className="w-full rounded-xl bg-slate-900 border border-white/10 px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500 resize-none"
+                  className="w-full rounded-xl bg-slate-900 border border-white/10 px-3 py-2 text-xs text-white focus:outline-none focus:border-red-500 resize-none"
                 />
               </div>
 
@@ -462,7 +462,7 @@ export const CrmBoardView: React.FC<CrmBoardViewProps> = ({
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold shadow-lg shadow-emerald-500/20"
+                  className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-bold shadow-lg shadow-red-950/40"
                 >
                   Criar Lead
                 </button>
@@ -513,7 +513,7 @@ export const CrmBoardView: React.FC<CrmBoardViewProps> = ({
                   )}
                   {cartaoDetalhes.contato_telefone && (
                     <p className="text-xs text-white flex items-center gap-2 font-mono">
-                      <Phone className="w-4 h-4 text-emerald-400" />
+                      <Phone className="w-4 h-4 text-red-500" />
                       {cartaoDetalhes.contato_telefone}
                     </p>
                   )}
@@ -524,8 +524,8 @@ export const CrmBoardView: React.FC<CrmBoardViewProps> = ({
                     </p>
                   )}
                   {cartaoDetalhes.valor && (
-                    <p className="text-xs text-emerald-400 font-bold flex items-center gap-2 font-mono">
-                      <DollarSign className="w-4 h-4" />
+                    <p className="text-xs text-white font-bold flex items-center gap-2 font-mono">
+                      <DollarSign className="w-4 h-4 text-red-500" />
                       R$ {cartaoDetalhes.valor.toFixed(2)}
                     </p>
                   )}
@@ -537,7 +537,7 @@ export const CrmBoardView: React.FC<CrmBoardViewProps> = ({
                   <select
                     value={cartaoDetalhes.coluna_id}
                     onChange={(e) => moverCartao(cartaoDetalhes.id, e.target.value)}
-                    className="w-full rounded-xl bg-slate-900 border border-white/10 px-3 py-2 text-xs font-semibold text-white focus:outline-none focus:border-emerald-500"
+                    className="w-full rounded-xl bg-slate-900 border border-white/10 px-3 py-2 text-xs font-semibold text-white focus:outline-none focus:border-red-500"
                   >
                     {colunas.map((col) => (
                       <option key={col.id} value={col.id}>
@@ -548,21 +548,21 @@ export const CrmBoardView: React.FC<CrmBoardViewProps> = ({
                 </div>
 
                 {/* Envio direto de WhatsApp */}
-                <div className="p-4 rounded-2xl bg-emerald-950/20 border border-emerald-500/20 space-y-3">
-                  <h4 className="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
-                    <MessageSquare className="w-3.5 h-3.5" /> Enviar WhatsApp Direto
+                <div className="p-4 rounded-2xl bg-red-950/20 border border-red-500/20 space-y-3">
+                  <h4 className="text-xs font-bold text-white flex items-center gap-1.5">
+                    <MessageSquare className="w-3.5 h-3.5 text-red-500" /> Enviar WhatsApp Direto
                   </h4>
                   <textarea
                     rows={3}
                     placeholder="Digite a mensagem para enviar agora pelo WhatsApp..."
                     value={msgDiretaTexto}
                     onChange={(e) => setMsgDiretaTexto(e.target.value)}
-                    className="w-full rounded-xl bg-slate-950 border border-white/10 p-2.5 text-xs text-white focus:outline-none focus:border-emerald-500 resize-none"
+                    className="w-full rounded-xl bg-black border border-white/10 p-2.5 text-xs text-white focus:outline-none focus:border-red-500 resize-none"
                   />
                   <button
                     onClick={enviarWhatsAppDireto}
                     disabled={enviandoMsg || !msgDiretaTexto.trim()}
-                    className="w-full flex items-center justify-center gap-2 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 text-slate-950 text-xs font-bold transition shadow-lg shadow-emerald-500/20"
+                    className="w-full flex items-center justify-center gap-2 py-2 rounded-xl bg-red-600 hover:bg-red-500 disabled:opacity-50 text-white text-xs font-bold transition shadow-lg shadow-red-950/40"
                   >
                     <Send className="w-3.5 h-3.5" />
                     {enviandoMsg ? "Enviando..." : "Disparar Mensagem"}
@@ -579,7 +579,7 @@ export const CrmBoardView: React.FC<CrmBoardViewProps> = ({
                   {atividadesCartao.map((ativ) => (
                     <div key={ativ.id} className="p-2.5 rounded-xl bg-white/[0.03] border border-white/5 text-xs space-y-1">
                       <div className="flex items-center justify-between text-[10px] text-slate-400">
-                        <span className="font-semibold text-emerald-400 uppercase">{ativ.tipo}</span>
+                        <span className="font-semibold text-red-400 uppercase">{ativ.tipo}</span>
                         <span>{new Date(ativ.created_at).toLocaleString()}</span>
                       </div>
                       <p className="text-slate-200 text-[11px] whitespace-pre-wrap">{ativ.corpo || "Atividade registrada"}</p>
@@ -611,7 +611,7 @@ export const CrmBoardView: React.FC<CrmBoardViewProps> = ({
 
             <p className="text-xs text-slate-400">
               Cole abaixo sua lista de contatos (um por linha). Formato recomendado: <br />
-              <code className="text-emerald-400 font-mono">Nome, Telefone com DDD</code> ou apenas <code className="text-emerald-400 font-mono">Telefone</code>.
+              <code className="text-red-400 font-mono">Nome, Telefone com DDD</code> ou apenas <code className="text-red-400 font-mono">Telefone</code>.
             </p>
 
             <textarea
@@ -619,7 +619,7 @@ export const CrmBoardView: React.FC<CrmBoardViewProps> = ({
               placeholder="Maria Oliveira, 11988887777&#10;João Santos, 21977776666&#10;11966665555"
               value={textoImportacao}
               onChange={(e) => setTextoImportacao(e.target.value)}
-              className="w-full rounded-xl bg-slate-900 border border-white/10 p-3 text-xs text-white focus:outline-none focus:border-emerald-500 font-mono resize-none"
+              className="w-full rounded-xl bg-slate-900 border border-white/10 p-3 text-xs text-white focus:outline-none focus:border-red-500 font-mono resize-none"
             />
 
             <div className="flex items-center justify-end gap-2">
@@ -631,7 +631,7 @@ export const CrmBoardView: React.FC<CrmBoardViewProps> = ({
               </button>
               <button
                 onClick={processarImportacao}
-                className="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold shadow-lg shadow-emerald-500/20"
+                className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-bold shadow-lg shadow-red-950/40"
               >
                 Importar Contatos
               </button>
