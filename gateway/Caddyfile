@@ -1,0 +1,23 @@
+# Única coisa pública do VPS: POST /acordar (a "campainha" do CRM), com TLS automático.
+# A assinatura HMAC é conferida no gateway; aqui só se corta o resto e o corpo grande.
+
+{$GATEWAY_DOMINIO} {
+	request_body {
+		max_size 8KB
+	}
+
+	@acordar {
+		method POST
+		path /acordar
+	}
+
+	handle @acordar {
+		reverse_proxy gateway:8080
+	}
+
+	handle {
+		respond 404
+	}
+
+	header -Server
+}

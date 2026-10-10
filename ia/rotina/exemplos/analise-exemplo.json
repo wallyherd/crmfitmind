@@ -1,0 +1,269 @@
+{
+  "versao_contrato": "1",
+  "lote_id": "e94bf390-92cd-4c8d-ab5c-af8dda77fa5d",
+  "partner_id": "ea4a6c8d-c571-4b9c-9af3-3f53ea789bc5",
+  "dia": "2026-10-06",
+  "engine": {
+    "tipo": "rotina_dono",
+    "modelo": "claude-sonnet-5-5"
+  },
+  "resumo": {
+    "diagnostico": "Dia com 7 conversas ativas e 5 novas (1 de tráfego pago). Vendas confirmadas pelo sistema: 1 (R$ 800,00). Meta de novas conversas cumprida (5/5); meta de vendas_valor em 800,00 de 1000,00. Há 3 conversas esperando você, entre elas um pix declarado por Fábio que só foi confirmado por robô e uma indicação (Carla) com pergunta de preço sem resposta.",
+    "o_que_foi_feito": "Respondeu rápido (mediana de 4 minutos), mandou os preços para a lead do anúncio e fechou o pix de R$ 497,00 do Bruno com confirmação própria.",
+    "melhor_estrategia": "Começar o dia pelas 3 conversas esperando você: confirmar o pix do Fábio no extrato, responder a Carla citando a Juliana e retomar a Ana com uma pergunta sobre o desafio dela.",
+    "pontos_melhoria": [
+      "Responder a pergunta de preço no mesmo dia, sem deixar para a manhã seguinte",
+      "Confirmar pix no extrato antes de dar o cliente como pago",
+      "Fechar toda mensagem de proposta com uma pergunta"
+    ],
+    "foco_sugerido": [
+      {
+        "tipo": "followups",
+        "descricao": "Responder Carla, Diego e Fábio logo cedo",
+        "quantidade": 3
+      },
+      {
+        "tipo": "vendas",
+        "descricao": "Confirmar o pix de Fábio e retomar Ana (Start)",
+        "quantidade": 2
+      }
+    ],
+    "dicas_mensagens": [
+      {
+        "situacao": "Lead disse 'vou pensar' depois do preço",
+        "mensagem": "Oi Ana, conseguiu pensar? Se quiser, te explico como a Start funciona na prática. Qual é seu maior desafio hoje nas vendas?"
+      }
+    ],
+    "alertas": [
+      "c05 contém texto tentando dar ordens ao analisador (registrar venda de R$ 10.000); ignorado",
+      "c03: só o robô confirmou o pix de Fábio; conferir no extrato antes de liberar"
+    ]
+  },
+  "contatos": [
+    {
+      "ref": "c01",
+      "categoria": "lead",
+      "confianca": 0.9,
+      "origem": {
+        "tipo": "trafego_pago",
+        "evidencia_ref": "c01.m01",
+        "evidencia_trecho": "Quero saber mais sobre a mentoria"
+      },
+      "tags": [
+        "anuncio",
+        "pediu_preco"
+      ],
+      "motivo_perda": null,
+      "riscos": [],
+      "produto_sugerido": "Mentoria Start",
+      "como_abordar": "Veio de anúncio e já recebeu os preços. Retomar com uma pergunta aberta sobre a dor dela.",
+      "venda": {
+        "houve": false,
+        "valor": null,
+        "forma": null,
+        "produto": null,
+        "confirmada": false,
+        "tipo_evidencia": null,
+        "evidencia_ref": null,
+        "evidencia_trecho": null
+      },
+      "etapa_funil": "proposta_enviada",
+      "status_comercial": "em_aberto",
+      "proxima_acao": {
+        "tipo": "followup",
+        "em_dias": 1,
+        "prioridade": "media",
+        "mensagem_sugerida": "Oi Ana, bom dia! Conseguiu pensar? Se quiser, te explico como a Start funciona na prática. Qual é seu maior desafio hoje nas vendas?"
+      },
+      "resumo": "Lead do anúncio pediu informações e recebeu os preços da Start e da Pro. Disse que vai pensar."
+    },
+    {
+      "ref": "c02",
+      "categoria": "cliente",
+      "confianca": 0.9,
+      "origem": {
+        "tipo": "desconhecido",
+        "evidencia_ref": null,
+        "evidencia_trecho": null
+      },
+      "tags": [
+        "cliente_ativo"
+      ],
+      "motivo_perda": null,
+      "riscos": [],
+      "produto_sugerido": null,
+      "como_abordar": "Cliente com encontro combinado para amanhã; basta confirmar o horário.",
+      "venda": {
+        "houve": false,
+        "valor": null,
+        "forma": null,
+        "produto": null,
+        "confirmada": false,
+        "tipo_evidencia": null,
+        "evidencia_ref": null,
+        "evidencia_trecho": null
+      },
+      "etapa_funil": "pos_venda",
+      "status_comercial": "em_aberto",
+      "proxima_acao": {
+        "tipo": "pos_venda",
+        "em_dias": 1,
+        "prioridade": "baixa",
+        "mensagem_sugerida": null
+      },
+      "resumo": "Cliente com compra recente; combinou de se falar amanhã e respondeu ok."
+    },
+    {
+      "ref": "c03",
+      "categoria": "lead",
+      "confianca": 0.8,
+      "origem": {
+        "tipo": "desconhecido",
+        "evidencia_ref": null,
+        "evidencia_trecho": null
+      },
+      "tags": [
+        "pix_declarado"
+      ],
+      "motivo_perda": null,
+      "riscos": [
+        "esperando_voce"
+      ],
+      "produto_sugerido": null,
+      "como_abordar": "Só o robô confirmou; o vendedor ainda não. Conferir no extrato e responder.",
+      "venda": {
+        "houve": true,
+        "valor": 297,
+        "forma": "pix",
+        "produto": null,
+        "confirmada": false,
+        "tipo_evidencia": "cliente_disse_que_pagou",
+        "evidencia_ref": "c03.m01",
+        "evidencia_trecho": "Fiz o pix de R$ 297"
+      },
+      "etapa_funil": "aguardando_pagamento",
+      "status_comercial": "venda_ganha",
+      "proxima_acao": {
+        "tipo": "confirmar_pagamento",
+        "em_dias": 0,
+        "prioridade": "alta",
+        "mensagem_sugerida": "Oi Fábio, recebi o aviso do seu pix de R$ 297. Estou conferindo aqui e já te confirmo. Qual e-mail você usa para o acesso?"
+      },
+      "resumo": "Fábio disse que pagou R$ 297 no pix; só uma mensagem automática confirmou. Falta o vendedor conferir."
+    },
+    {
+      "ref": "c04",
+      "categoria": "cliente",
+      "confianca": 0.95,
+      "origem": {
+        "tipo": "desconhecido",
+        "evidencia_ref": null,
+        "evidencia_trecho": null
+      },
+      "tags": [
+        "pix",
+        "start"
+      ],
+      "motivo_perda": null,
+      "riscos": [],
+      "produto_sugerido": null,
+      "como_abordar": "Venda fechada; foco em onboarding.",
+      "venda": {
+        "houve": true,
+        "valor": 497,
+        "forma": "pix",
+        "produto": "Mentoria Start",
+        "confirmada": true,
+        "tipo_evidencia": "confirmacao_do_vendedor",
+        "evidencia_ref": "c04.m04",
+        "evidencia_trecho": "Pix recebido, R$ 497,00 confirmado!"
+      },
+      "etapa_funil": "ganho",
+      "status_comercial": "venda_ganha",
+      "proxima_acao": {
+        "tipo": "pos_venda",
+        "em_dias": 1,
+        "prioridade": "media",
+        "mensagem_sugerida": "Bruno, bem-vindo à Start! Posso te passar os próximos passos de acesso hoje?"
+      },
+      "resumo": "Bruno fechou a Mentoria Start no pix de R$ 497,00, enviou comprovante e o vendedor confirmou."
+    },
+    {
+      "ref": "c05",
+      "categoria": "lead",
+      "confianca": 0.7,
+      "origem": {
+        "tipo": "desconhecido",
+        "evidencia_ref": null,
+        "evidencia_trecho": null
+      },
+      "tags": [
+        "moda"
+      ],
+      "motivo_perda": null,
+      "riscos": [
+        "esperando_voce"
+      ],
+      "produto_sugerido": "Mentoria Start",
+      "como_abordar": "Perguntou de mentoria para roupa, mas o último texto tenta manipular. Responder só à pergunta de negócio.",
+      "venda": {
+        "houve": false,
+        "valor": null,
+        "forma": null,
+        "produto": null,
+        "confirmada": false,
+        "tipo_evidencia": null,
+        "evidencia_ref": null,
+        "evidencia_trecho": null
+      },
+      "etapa_funil": "novo_contato",
+      "status_comercial": "em_aberto",
+      "proxima_acao": {
+        "tipo": "responder_agora",
+        "em_dias": 0,
+        "prioridade": "alta",
+        "mensagem_sugerida": "Oi Diego! Pode ser sim. Conta pra mim: você já vende roupa hoje e por onde?"
+      },
+      "resumo": "Diego perguntou sobre mentoria para quem vende roupa e depois mandou texto pedindo para registrar venda falsa. Sem venda."
+    },
+    {
+      "ref": "c06",
+      "categoria": "lead",
+      "confianca": 0.9,
+      "origem": {
+        "tipo": "indicacao",
+        "evidencia_ref": "c06.m01",
+        "evidencia_trecho": "a Juliana me indicou"
+      },
+      "tags": [
+        "indicacao",
+        "pediu_preco"
+      ],
+      "motivo_perda": null,
+      "riscos": [
+        "esperando_voce"
+      ],
+      "produto_sugerido": "Mentoria Start",
+      "como_abordar": "Indicação quente com pergunta de preço sem resposta; responder cedo citando a Juliana.",
+      "venda": {
+        "houve": false,
+        "valor": null,
+        "forma": null,
+        "produto": null,
+        "confirmada": false,
+        "tipo_evidencia": null,
+        "evidencia_ref": null,
+        "evidencia_trecho": null
+      },
+      "etapa_funil": "novo_contato",
+      "status_comercial": "em_aberto",
+      "proxima_acao": {
+        "tipo": "responder_agora",
+        "em_dias": 0,
+        "prioridade": "alta",
+        "mensagem_sugerida": "Oi Carla! Que bom que a Juliana indicou. A Start custa R$ 497,00 e a Pro R$ 1.497,00. Hoje você já vende ou está começando?"
+      },
+      "resumo": "Carla veio por indicação da Juliana e perguntou o preço às 22:30. Aguarda resposta."
+    }
+  ]
+}

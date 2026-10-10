@@ -1,0 +1,2705 @@
+{
+	"gerado_em": "2026-10-09T23:50:58.570098+00:00",
+	"versao_postgres": "17.6",
+	"extensoes": [
+		"pg_stat_statements",
+		"pgcrypto",
+		"plpgsql",
+		"supabase_vault",
+		"uuid-ossp"
+	],
+	"tabelas": {
+		"ia_retroalimentacao_config": {
+			"rls": true,
+			"colunas": [
+				{
+					"nome": "id",
+					"tipo": "uuid",
+					"nulo": false,
+					"padrao": "gen_random_uuid()"
+				},
+				{
+					"nome": "partner_id",
+					"tipo": "uuid",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "github_repo",
+					"tipo": "text",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "github_branch",
+					"tipo": "text",
+					"nulo": true,
+					"padrao": "'main'::text"
+				},
+				{
+					"nome": "github_token",
+					"tipo": "text",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "github_path_pattern",
+					"tipo": "text",
+					"nulo": true,
+					"padrao": "'conversas/{ano}-{mes}-{dia}.txt'::text"
+				},
+				{
+					"nome": "gemini_api_key",
+					"tipo": "text",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "horario_execucao",
+					"tipo": "text",
+					"nulo": true,
+					"padrao": "'07:30'::text"
+				},
+				{
+					"nome": "quadro_id",
+					"tipo": "uuid",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "auto_sincronizar",
+					"tipo": "boolean",
+					"nulo": true,
+					"padrao": "true"
+				},
+				{
+					"nome": "ultima_execucao",
+					"tipo": "timestamp with time zone",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "ultimo_status",
+					"tipo": "text",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "ultimo_erro",
+					"tipo": "text",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "created_at",
+					"tipo": "timestamp with time zone",
+					"nulo": false,
+					"padrao": "now()"
+				},
+				{
+					"nome": "updated_at",
+					"tipo": "timestamp with time zone",
+					"nulo": false,
+					"padrao": "now()"
+				}
+			],
+			"restricoes": [
+				{
+					"nome": "ia_retroalimentacao_config_partner_id_fkey",
+					"def": "FOREIGN KEY (partner_id) REFERENCES partners(id) ON DELETE CASCADE"
+				},
+				{
+					"nome": "ia_retroalimentacao_config_pkey",
+					"def": "PRIMARY KEY (id)"
+				},
+				{
+					"nome": "ia_retroalimentacao_config_quadro_id_fkey",
+					"def": "FOREIGN KEY (quadro_id) REFERENCES crm_quadros(id) ON DELETE SET NULL"
+				}
+			],
+			"indices": [
+				"CREATE UNIQUE INDEX ia_retroalimentacao_config_pkey ON public.ia_retroalimentacao_config USING btree (id)",
+				"CREATE INDEX idx_ia_config_partner ON public.ia_retroalimentacao_config USING btree (partner_id)"
+			]
+		},
+		"ia_relatorios_diarios": {
+			"rls": true,
+			"colunas": [
+				{
+					"nome": "id",
+					"tipo": "uuid",
+					"nulo": false,
+					"padrao": "gen_random_uuid()"
+				},
+				{
+					"nome": "partner_id",
+					"tipo": "uuid",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "data_referencia",
+					"tipo": "date",
+					"nulo": false,
+					"padrao": null
+				},
+				{
+					"nome": "arquivo_origem",
+					"tipo": "text",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "total_conversas",
+					"tipo": "integer",
+					"nulo": true,
+					"padrao": "0"
+				},
+				{
+					"nome": "vendas_fechadas",
+					"tipo": "integer",
+					"nulo": true,
+					"padrao": "0"
+				},
+				{
+					"nome": "perdas_vendas",
+					"tipo": "integer",
+					"nulo": true,
+					"padrao": "0"
+				},
+				{
+					"nome": "conversas_abertas",
+					"tipo": "integer",
+					"nulo": true,
+					"padrao": "0"
+				},
+				{
+					"nome": "iniciadas_nao_finalizadas",
+					"tipo": "integer",
+					"nulo": true,
+					"padrao": "0"
+				},
+				{
+					"nome": "resumo_executivo",
+					"tipo": "text",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "pontos_melhoria",
+					"tipo": "text",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "leads_analisados",
+					"tipo": "jsonb",
+					"nulo": true,
+					"padrao": "'[]'::jsonb"
+				},
+				{
+					"nome": "status",
+					"tipo": "text",
+					"nulo": true,
+					"padrao": "'concluido'::text"
+				},
+				{
+					"nome": "created_at",
+					"tipo": "timestamp with time zone",
+					"nulo": false,
+					"padrao": "now()"
+				}
+			],
+			"restricoes": [
+				{
+					"nome": "ia_relatorios_diarios_partner_id_fkey",
+					"def": "FOREIGN KEY (partner_id) REFERENCES partners(id) ON DELETE CASCADE"
+				},
+				{
+					"nome": "ia_relatorios_diarios_pkey",
+					"def": "PRIMARY KEY (id)"
+				}
+			],
+			"indices": [
+				"CREATE UNIQUE INDEX ia_relatorios_diarios_pkey ON public.ia_relatorios_diarios USING btree (id)",
+				"CREATE INDEX idx_ia_relatorios_partner_data ON public.ia_relatorios_diarios USING btree (partner_id, data_referencia)"
+			]
+		},
+		"profiles": {
+			"rls": true,
+			"colunas": [
+				{
+					"nome": "id",
+					"tipo": "uuid",
+					"nulo": false,
+					"padrao": "gen_random_uuid()"
+				},
+				{
+					"nome": "user_id",
+					"tipo": "uuid",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "name",
+					"tipo": "text",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "email",
+					"tipo": "text",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "phone",
+					"tipo": "text",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "role",
+					"tipo": "text",
+					"nulo": false,
+					"padrao": "'user'::text"
+				},
+				{
+					"nome": "created_at",
+					"tipo": "timestamp with time zone",
+					"nulo": false,
+					"padrao": "now()"
+				},
+				{
+					"nome": "status",
+					"tipo": "text",
+					"nulo": false,
+					"padrao": "'ativo'::text"
+				},
+				{
+					"nome": "expira_em",
+					"tipo": "timestamp with time zone",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "partner_id",
+					"tipo": "uuid",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "senha_hash",
+					"tipo": "text",
+					"nulo": true,
+					"padrao": null
+				}
+			],
+			"restricoes": [
+				{
+					"nome": "profiles_partner_id_fkey",
+					"def": "FOREIGN KEY (partner_id) REFERENCES partners(id) ON DELETE SET NULL"
+				},
+				{
+					"nome": "profiles_pkey",
+					"def": "PRIMARY KEY (id)"
+				},
+				{
+					"nome": "profiles_role_check",
+					"def": "CHECK ((role = ANY (ARRAY['user'::text, 'admin'::text])))"
+				},
+				{
+					"nome": "profiles_user_id_fkey",
+					"def": "FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE"
+				},
+				{
+					"nome": "profiles_user_id_key",
+					"def": "UNIQUE (user_id)"
+				}
+			],
+			"indices": [
+				"CREATE UNIQUE INDEX profiles_pkey ON public.profiles USING btree (id)",
+				"CREATE UNIQUE INDEX profiles_user_id_key ON public.profiles USING btree (user_id)",
+				"CREATE UNIQUE INDEX profiles_email_idx ON public.profiles USING btree (email)"
+			]
+		},
+		"partners": {
+			"rls": true,
+			"colunas": [
+				{
+					"nome": "id",
+					"tipo": "uuid",
+					"nulo": false,
+					"padrao": "gen_random_uuid()"
+				},
+				{
+					"nome": "profile_id",
+					"tipo": "uuid",
+					"nulo": false,
+					"padrao": null
+				},
+				{
+					"nome": "fantasy_name",
+					"tipo": "text",
+					"nulo": false,
+					"padrao": null
+				},
+				{
+					"nome": "city",
+					"tipo": "text",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "state",
+					"tipo": "text",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "status",
+					"tipo": "text",
+					"nulo": false,
+					"padrao": "'ativo'::text"
+				},
+				{
+					"nome": "business_area",
+					"tipo": "text",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "created_at",
+					"tipo": "timestamp with time zone",
+					"nulo": false,
+					"padrao": "now()"
+				}
+			],
+			"restricoes": [
+				{
+					"nome": "partners_pkey",
+					"def": "PRIMARY KEY (id)"
+				},
+				{
+					"nome": "partners_profile_id_fkey",
+					"def": "FOREIGN KEY (profile_id) REFERENCES profiles(id)"
+				}
+			],
+			"indices": [
+				"CREATE UNIQUE INDEX partners_pkey ON public.partners USING btree (id)"
+			]
+		},
+		"partner_members": {
+			"rls": true,
+			"colunas": [
+				{
+					"nome": "partner_id",
+					"tipo": "uuid",
+					"nulo": false,
+					"padrao": null
+				},
+				{
+					"nome": "profile_id",
+					"tipo": "uuid",
+					"nulo": false,
+					"padrao": null
+				},
+				{
+					"nome": "papel",
+					"tipo": "text",
+					"nulo": false,
+					"padrao": "'membro'::text"
+				},
+				{
+					"nome": "permissoes",
+					"tipo": "text[]",
+					"nulo": false,
+					"padrao": "'{}'::text[]"
+				},
+				{
+					"nome": "created_at",
+					"tipo": "timestamp with time zone",
+					"nulo": false,
+					"padrao": "now()"
+				}
+			],
+			"restricoes": [
+				{
+					"nome": "partner_members_papel_check",
+					"def": "CHECK ((papel = ANY (ARRAY['owner'::text, 'membro'::text])))"
+				},
+				{
+					"nome": "partner_members_partner_id_fkey",
+					"def": "FOREIGN KEY (partner_id) REFERENCES partners(id) ON DELETE CASCADE"
+				},
+				{
+					"nome": "partner_members_pkey",
+					"def": "PRIMARY KEY (partner_id, profile_id)"
+				},
+				{
+					"nome": "partner_members_profile_id_fkey",
+					"def": "FOREIGN KEY (profile_id) REFERENCES profiles(id) ON DELETE CASCADE"
+				}
+			],
+			"indices": [
+				"CREATE UNIQUE INDEX partner_members_pkey ON public.partner_members USING btree (partner_id, profile_id)"
+			]
+		},
+		"partner_acesso_config": {
+			"rls": true,
+			"colunas": [
+				{
+					"nome": "partner_id",
+					"tipo": "uuid",
+					"nulo": false,
+					"padrao": null
+				},
+				{
+					"nome": "timezone",
+					"tipo": "text",
+					"nulo": false,
+					"padrao": "'America/Sao_Paulo'::text"
+				},
+				{
+					"nome": "grupo_id",
+					"tipo": "uuid",
+					"nulo": true,
+					"padrao": null
+				}
+			],
+			"restricoes": [
+				{
+					"nome": "partner_acesso_config_partner_id_fkey",
+					"def": "FOREIGN KEY (partner_id) REFERENCES partners(id) ON DELETE CASCADE"
+				},
+				{
+					"nome": "partner_acesso_config_pkey",
+					"def": "PRIMARY KEY (partner_id)"
+				}
+			],
+			"indices": [
+				"CREATE UNIQUE INDEX partner_acesso_config_pkey ON public.partner_acesso_config USING btree (partner_id)"
+			]
+		},
+		"leads": {
+			"rls": true,
+			"colunas": [
+				{
+					"nome": "id",
+					"tipo": "uuid",
+					"nulo": false,
+					"padrao": "gen_random_uuid()"
+				},
+				{
+					"nome": "created_at",
+					"tipo": "timestamp with time zone",
+					"nulo": false,
+					"padrao": "now()"
+				}
+			],
+			"restricoes": [
+				{
+					"nome": "leads_pkey",
+					"def": "PRIMARY KEY (id)"
+				}
+			],
+			"indices": [
+				"CREATE UNIQUE INDEX leads_pkey ON public.leads USING btree (id)"
+			]
+		},
+		"bot_conexoes": {
+			"rls": true,
+			"colunas": [
+				{
+					"nome": "id",
+					"tipo": "uuid",
+					"nulo": false,
+					"padrao": "gen_random_uuid()"
+				},
+				{
+					"nome": "escopo",
+					"tipo": "text",
+					"nulo": false,
+					"padrao": null
+				},
+				{
+					"nome": "owner_id",
+					"tipo": "uuid",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "nome",
+					"tipo": "text",
+					"nulo": false,
+					"padrao": null
+				},
+				{
+					"nome": "provedor",
+					"tipo": "text",
+					"nulo": false,
+					"padrao": "'nao_oficial'::text"
+				},
+				{
+					"nome": "numero",
+					"tipo": "text",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "status",
+					"tipo": "text",
+					"nulo": false,
+					"padrao": "'desconectado'::text"
+				},
+				{
+					"nome": "status_detalhe",
+					"tipo": "text",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "webhook_segredo",
+					"tipo": "text",
+					"nulo": false,
+					"padrao": "(replace((gen_random_uuid())::text, '-'::text, ''::text) || replace((gen_random_uuid())::text, '-'::text, ''::text))"
+				},
+				{
+					"nome": "conectado_em",
+					"tipo": "timestamp with time zone",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "visto_em",
+					"tipo": "timestamp with time zone",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "arquivado_em",
+					"tipo": "timestamp with time zone",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "criado_por",
+					"tipo": "uuid",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "created_at",
+					"tipo": "timestamp with time zone",
+					"nulo": false,
+					"padrao": "now()"
+				},
+				{
+					"nome": "updated_at",
+					"tipo": "timestamp with time zone",
+					"nulo": false,
+					"padrao": "now()"
+				},
+				{
+					"nome": "prioridade",
+					"tipo": "integer",
+					"nulo": false,
+					"padrao": "100"
+				},
+				{
+					"nome": "falhas_seguidas",
+					"tipo": "integer",
+					"nulo": false,
+					"padrao": "0"
+				},
+				{
+					"nome": "bloqueado_em",
+					"tipo": "timestamp with time zone",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "bloqueado_motivo",
+					"tipo": "text",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "limite_diario",
+					"tipo": "integer",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "enviadas_hoje",
+					"tipo": "integer",
+					"nulo": false,
+					"padrao": "0"
+				},
+				{
+					"nome": "contador_dia",
+					"tipo": "date",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "uso",
+					"tipo": "text",
+					"nulo": false,
+					"padrao": "'atendimento'::text"
+				},
+				{
+					"nome": "versao",
+					"tipo": "text",
+					"nulo": true,
+					"padrao": null
+				}
+			],
+			"restricoes": [
+				{
+					"nome": "bot_conexoes_criado_por_fkey",
+					"def": "FOREIGN KEY (criado_por) REFERENCES profiles(id) ON DELETE SET NULL"
+				},
+				{
+					"nome": "bot_conexoes_escopo_check",
+					"def": "CHECK ((escopo = ANY (ARRAY['parceiro'::text, 'coach'::text, 'profissional'::text, 'admin'::text])))"
+				},
+				{
+					"nome": "bot_conexoes_owner_coerente",
+					"def": "CHECK ((((escopo = 'admin'::text) AND (owner_id IS NULL)) OR ((escopo <> 'admin'::text) AND (owner_id IS NOT NULL))))"
+				},
+				{
+					"nome": "bot_conexoes_pkey",
+					"def": "PRIMARY KEY (id)"
+				},
+				{
+					"nome": "bot_conexoes_provedor_check",
+					"def": "CHECK ((provedor = ANY (ARRAY['nao_oficial'::text, 'oficial'::text])))"
+				},
+				{
+					"nome": "bot_conexoes_status_check",
+					"def": "CHECK ((status = ANY (ARRAY['desconectado'::text, 'aguardando_qr'::text, 'conectado'::text, 'erro'::text])))"
+				},
+				{
+					"nome": "bot_conexoes_uso_valido",
+					"def": "CHECK ((uso = ANY (ARRAY['atendimento'::text, 'plataforma'::text])))"
+				}
+			],
+			"indices": [
+				"CREATE UNIQUE INDEX bot_conexoes_pkey ON public.bot_conexoes USING btree (id)",
+				"CREATE INDEX idx_bot_conexoes_dono ON public.bot_conexoes USING btree (escopo, owner_id)",
+				"CREATE INDEX idx_bot_conexoes_saudaveis ON public.bot_conexoes USING btree (escopo, owner_id, uso, prioridade) WHERE ((arquivado_em IS NULL) AND (bloqueado_em IS NULL))"
+			]
+		},
+		"bot_conversas": {
+			"rls": true,
+			"colunas": [
+				{
+					"nome": "id",
+					"tipo": "uuid",
+					"nulo": false,
+					"padrao": "gen_random_uuid()"
+				},
+				{
+					"nome": "conexao_id",
+					"tipo": "uuid",
+					"nulo": false,
+					"padrao": null
+				},
+				{
+					"nome": "telefone",
+					"tipo": "text",
+					"nulo": false,
+					"padrao": null
+				},
+				{
+					"nome": "nome",
+					"tipo": "text",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "fluxo_id",
+					"tipo": "uuid",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "passo_atual_id",
+					"tipo": "uuid",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "estado",
+					"tipo": "text",
+					"nulo": false,
+					"padrao": "'bot'::text"
+				},
+				{
+					"nome": "profile_id",
+					"tipo": "uuid",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "cartao_id",
+					"tipo": "uuid",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "ultima_mensagem_em",
+					"tipo": "timestamp with time zone",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "encerrada_em",
+					"tipo": "timestamp with time zone",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "created_at",
+					"tipo": "timestamp with time zone",
+					"nulo": false,
+					"padrao": "now()"
+				},
+				{
+					"nome": "updated_at",
+					"tipo": "timestamp with time zone",
+					"nulo": false,
+					"padrao": "now()"
+				},
+				{
+					"nome": "jid",
+					"tipo": "text",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "tentativas_passo",
+					"tipo": "integer",
+					"nulo": false,
+					"padrao": "0"
+				}
+			],
+			"restricoes": [
+				{
+					"nome": "bot_conversas_cartao_id_fkey",
+					"def": "FOREIGN KEY (cartao_id) REFERENCES crm_cartoes(id) ON DELETE SET NULL"
+				},
+				{
+					"nome": "bot_conversas_conexao_id_fkey",
+					"def": "FOREIGN KEY (conexao_id) REFERENCES bot_conexoes(id) ON DELETE CASCADE"
+				},
+				{
+					"nome": "bot_conversas_estado_check",
+					"def": "CHECK ((estado = ANY (ARRAY['bot'::text, 'humano'::text, 'encerrada'::text])))"
+				},
+				{
+					"nome": "bot_conversas_fluxo_id_fkey",
+					"def": "FOREIGN KEY (fluxo_id) REFERENCES bot_fluxos(id) ON DELETE SET NULL"
+				},
+				{
+					"nome": "bot_conversas_passo_atual_id_fkey",
+					"def": "FOREIGN KEY (passo_atual_id) REFERENCES bot_passos(id) ON DELETE SET NULL"
+				},
+				{
+					"nome": "bot_conversas_pkey",
+					"def": "PRIMARY KEY (id)"
+				},
+				{
+					"nome": "bot_conversas_profile_id_fkey",
+					"def": "FOREIGN KEY (profile_id) REFERENCES profiles(id) ON DELETE SET NULL"
+				},
+				{
+					"nome": "bot_conversas_unica",
+					"def": "UNIQUE (conexao_id, telefone)"
+				}
+			],
+			"indices": [
+				"CREATE UNIQUE INDEX bot_conversas_pkey ON public.bot_conversas USING btree (id)",
+				"CREATE UNIQUE INDEX bot_conversas_unica ON public.bot_conversas USING btree (conexao_id, telefone)",
+				"CREATE INDEX bot_conversas_jid ON public.bot_conversas USING btree (conexao_id, jid) WHERE (jid IS NOT NULL)",
+				"CREATE INDEX idx_bot_conversas_cartao ON public.bot_conversas USING btree (cartao_id)",
+				"CREATE INDEX idx_bot_conversas_conexao ON public.bot_conversas USING btree (conexao_id, ultima_mensagem_em DESC)",
+				"CREATE INDEX idx_bot_conversas_estado ON public.bot_conversas USING btree (estado) WHERE (estado = 'humano'::text)"
+			]
+		},
+		"bot_disparo_alvos": {
+			"rls": true,
+			"colunas": [
+				{
+					"nome": "id",
+					"tipo": "uuid",
+					"nulo": false,
+					"padrao": "gen_random_uuid()"
+				},
+				{
+					"nome": "disparo_id",
+					"tipo": "uuid",
+					"nulo": false,
+					"padrao": null
+				},
+				{
+					"nome": "telefone",
+					"tipo": "text",
+					"nulo": false,
+					"padrao": null
+				},
+				{
+					"nome": "nome",
+					"tipo": "text",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "cartao_id",
+					"tipo": "uuid",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "status",
+					"tipo": "text",
+					"nulo": false,
+					"padrao": "'pendente'::text"
+				},
+				{
+					"nome": "mensagem_id",
+					"tipo": "uuid",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "erro",
+					"tipo": "text",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "created_at",
+					"tipo": "timestamp with time zone",
+					"nulo": false,
+					"padrao": "now()"
+				}
+			],
+			"restricoes": [
+				{
+					"nome": "bot_disparo_alvo_unico",
+					"def": "UNIQUE (disparo_id, telefone)"
+				},
+				{
+					"nome": "bot_disparo_alvos_cartao_id_fkey",
+					"def": "FOREIGN KEY (cartao_id) REFERENCES crm_cartoes(id) ON DELETE SET NULL"
+				},
+				{
+					"nome": "bot_disparo_alvos_disparo_id_fkey",
+					"def": "FOREIGN KEY (disparo_id) REFERENCES bot_disparos(id) ON DELETE CASCADE"
+				},
+				{
+					"nome": "bot_disparo_alvos_mensagem_id_fkey",
+					"def": "FOREIGN KEY (mensagem_id) REFERENCES bot_mensagens(id) ON DELETE SET NULL"
+				},
+				{
+					"nome": "bot_disparo_alvos_pkey",
+					"def": "PRIMARY KEY (id)"
+				},
+				{
+					"nome": "bot_disparo_alvos_status_check",
+					"def": "CHECK ((status = ANY (ARRAY['pendente'::text, 'enfileirado'::text, 'enviado'::text, 'erro'::text, 'ignorado'::text])))"
+				}
+			],
+			"indices": [
+				"CREATE UNIQUE INDEX bot_disparo_alvos_pkey ON public.bot_disparo_alvos USING btree (id)",
+				"CREATE UNIQUE INDEX bot_disparo_alvo_unico ON public.bot_disparo_alvos USING btree (disparo_id, telefone)",
+				"CREATE INDEX idx_bot_disparo_alvos_fila ON public.bot_disparo_alvos USING btree (disparo_id, status) WHERE (status = 'pendente'::text)"
+			]
+		},
+		"bot_disparos": {
+			"rls": true,
+			"colunas": [
+				{
+					"nome": "id",
+					"tipo": "uuid",
+					"nulo": false,
+					"padrao": "gen_random_uuid()"
+				},
+				{
+					"nome": "escopo",
+					"tipo": "text",
+					"nulo": false,
+					"padrao": null
+				},
+				{
+					"nome": "owner_id",
+					"tipo": "uuid",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "nome",
+					"tipo": "text",
+					"nulo": false,
+					"padrao": null
+				},
+				{
+					"nome": "mensagem",
+					"tipo": "text",
+					"nulo": false,
+					"padrao": null
+				},
+				{
+					"nome": "uso",
+					"tipo": "text",
+					"nulo": false,
+					"padrao": "'atendimento'::text"
+				},
+				{
+					"nome": "status",
+					"tipo": "text",
+					"nulo": false,
+					"padrao": "'rascunho'::text"
+				},
+				{
+					"nome": "agendado_para",
+					"tipo": "timestamp with time zone",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "intervalo_segundos",
+					"tipo": "smallint",
+					"nulo": false,
+					"padrao": "20"
+				},
+				{
+					"nome": "iniciado_em",
+					"tipo": "timestamp with time zone",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "concluido_em",
+					"tipo": "timestamp with time zone",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "criado_por",
+					"tipo": "uuid",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "created_at",
+					"tipo": "timestamp with time zone",
+					"nulo": false,
+					"padrao": "now()"
+				},
+				{
+					"nome": "updated_at",
+					"tipo": "timestamp with time zone",
+					"nulo": false,
+					"padrao": "now()"
+				},
+				{
+					"nome": "automatico",
+					"tipo": "boolean",
+					"nulo": false,
+					"padrao": "false"
+				}
+			],
+			"restricoes": [
+				{
+					"nome": "bot_disparos_criado_por_fkey",
+					"def": "FOREIGN KEY (criado_por) REFERENCES profiles(id) ON DELETE SET NULL"
+				},
+				{
+					"nome": "bot_disparos_escopo_check",
+					"def": "CHECK ((escopo = ANY (ARRAY['parceiro'::text, 'coach'::text, 'profissional'::text, 'admin'::text])))"
+				},
+				{
+					"nome": "bot_disparos_intervalo_segundos_check",
+					"def": "CHECK ((intervalo_segundos >= 5))"
+				},
+				{
+					"nome": "bot_disparos_pkey",
+					"def": "PRIMARY KEY (id)"
+				},
+				{
+					"nome": "bot_disparos_status_check",
+					"def": "CHECK ((status = ANY (ARRAY['rascunho'::text, 'enfileirando'::text, 'enviando'::text, 'concluido'::text, 'cancelado'::text])))"
+				},
+				{
+					"nome": "bot_disparos_uso_check",
+					"def": "CHECK ((uso = ANY (ARRAY['atendimento'::text, 'plataforma'::text])))"
+				}
+			],
+			"indices": [
+				"CREATE UNIQUE INDEX bot_disparos_pkey ON public.bot_disparos USING btree (id)",
+				"CREATE INDEX idx_bot_disparos_dono ON public.bot_disparos USING btree (escopo, owner_id, status)"
+			]
+		},
+		"bot_fluxos": {
+			"rls": true,
+			"colunas": [
+				{
+					"nome": "id",
+					"tipo": "uuid",
+					"nulo": false,
+					"padrao": "gen_random_uuid()"
+				},
+				{
+					"nome": "escopo",
+					"tipo": "text",
+					"nulo": false,
+					"padrao": null
+				},
+				{
+					"nome": "owner_id",
+					"tipo": "uuid",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "nome",
+					"tipo": "text",
+					"nulo": false,
+					"padrao": null
+				},
+				{
+					"nome": "descricao",
+					"tipo": "text",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "gatilho_tipo",
+					"tipo": "text",
+					"nulo": false,
+					"padrao": "'primeira_mensagem'::text"
+				},
+				{
+					"nome": "gatilho_valor",
+					"tipo": "text",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "ativo",
+					"tipo": "boolean",
+					"nulo": false,
+					"padrao": "false"
+				},
+				{
+					"nome": "modelo",
+					"tipo": "boolean",
+					"nulo": false,
+					"padrao": "false"
+				},
+				{
+					"nome": "clonado_de",
+					"tipo": "uuid",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "passo_inicial_id",
+					"tipo": "uuid",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "arquivado_em",
+					"tipo": "timestamp with time zone",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "criado_por",
+					"tipo": "uuid",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "created_at",
+					"tipo": "timestamp with time zone",
+					"nulo": false,
+					"padrao": "now()"
+				},
+				{
+					"nome": "updated_at",
+					"tipo": "timestamp with time zone",
+					"nulo": false,
+					"padrao": "now()"
+				}
+			],
+			"restricoes": [
+				{
+					"nome": "bot_fluxos_clonado_de_fkey",
+					"def": "FOREIGN KEY (clonado_de) REFERENCES bot_fluxos(id) ON DELETE SET NULL"
+				},
+				{
+					"nome": "bot_fluxos_criado_por_fkey",
+					"def": "FOREIGN KEY (criado_por) REFERENCES profiles(id) ON DELETE SET NULL"
+				},
+				{
+					"nome": "bot_fluxos_escopo_check",
+					"def": "CHECK ((escopo = ANY (ARRAY['parceiro'::text, 'coach'::text, 'profissional'::text, 'admin'::text])))"
+				},
+				{
+					"nome": "bot_fluxos_gatilho_coerente",
+					"def": "CHECK (((gatilho_tipo <> 'palavra_chave'::text) OR ((gatilho_valor IS NOT NULL) AND (gatilho_valor <> ''::text))))"
+				},
+				{
+					"nome": "bot_fluxos_gatilho_tipo_check",
+					"def": "CHECK ((gatilho_tipo = ANY (ARRAY['primeira_mensagem'::text, 'palavra_chave'::text, 'manual'::text])))"
+				},
+				{
+					"nome": "bot_fluxos_owner_coerente",
+					"def": "CHECK ((((escopo = 'admin'::text) AND (owner_id IS NULL)) OR ((escopo <> 'admin'::text) AND (owner_id IS NOT NULL))))"
+				},
+				{
+					"nome": "bot_fluxos_passo_inicial_fk",
+					"def": "FOREIGN KEY (passo_inicial_id) REFERENCES bot_passos(id) ON DELETE SET NULL"
+				},
+				{
+					"nome": "bot_fluxos_pkey",
+					"def": "PRIMARY KEY (id)"
+				}
+			],
+			"indices": [
+				"CREATE UNIQUE INDEX bot_fluxos_pkey ON public.bot_fluxos USING btree (id)",
+				"CREATE INDEX idx_bot_fluxos_ativo ON public.bot_fluxos USING btree (ativo) WHERE (ativo = true)",
+				"CREATE INDEX idx_bot_fluxos_dono ON public.bot_fluxos USING btree (escopo, owner_id)",
+				"CREATE INDEX idx_bot_fluxos_modelo ON public.bot_fluxos USING btree (modelo) WHERE (modelo = true)"
+			]
+		},
+		"bot_mensagens": {
+			"rls": true,
+			"colunas": [
+				{
+					"nome": "id",
+					"tipo": "uuid",
+					"nulo": false,
+					"padrao": "gen_random_uuid()"
+				},
+				{
+					"nome": "conversa_id",
+					"tipo": "uuid",
+					"nulo": false,
+					"padrao": null
+				},
+				{
+					"nome": "direcao",
+					"tipo": "text",
+					"nulo": false,
+					"padrao": null
+				},
+				{
+					"nome": "tipo",
+					"tipo": "text",
+					"nulo": false,
+					"padrao": "'texto'::text"
+				},
+				{
+					"nome": "corpo",
+					"tipo": "text",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "midia_url",
+					"tipo": "text",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "wa_id",
+					"tipo": "text",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "enviada_por",
+					"tipo": "uuid",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "status",
+					"tipo": "text",
+					"nulo": false,
+					"padrao": "'recebida'::text"
+				},
+				{
+					"nome": "tentativas",
+					"tipo": "smallint",
+					"nulo": false,
+					"padrao": "0"
+				},
+				{
+					"nome": "enviada_em",
+					"tipo": "timestamp with time zone",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "erro",
+					"tipo": "text",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "created_at",
+					"tipo": "timestamp with time zone",
+					"nulo": false,
+					"padrao": "now()"
+				},
+				{
+					"nome": "agendado_para",
+					"tipo": "timestamp with time zone",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "disparo_id",
+					"tipo": "uuid",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "entregue_em",
+					"tipo": "timestamp with time zone",
+					"nulo": true,
+					"padrao": null
+				}
+			],
+			"restricoes": [
+				{
+					"nome": "bot_mensagens_conversa_id_fkey",
+					"def": "FOREIGN KEY (conversa_id) REFERENCES bot_conversas(id) ON DELETE CASCADE"
+				},
+				{
+					"nome": "bot_mensagens_direcao_check",
+					"def": "CHECK ((direcao = ANY (ARRAY['entrada'::text, 'saida'::text])))"
+				},
+				{
+					"nome": "bot_mensagens_disparo_fk",
+					"def": "FOREIGN KEY (disparo_id) REFERENCES bot_disparos(id) ON DELETE SET NULL"
+				},
+				{
+					"nome": "bot_mensagens_enviada_por_fkey",
+					"def": "FOREIGN KEY (enviada_por) REFERENCES profiles(id) ON DELETE SET NULL"
+				},
+				{
+					"nome": "bot_mensagens_pkey",
+					"def": "PRIMARY KEY (id)"
+				},
+				{
+					"nome": "bot_mensagens_status_check",
+					"def": "CHECK ((status = ANY (ARRAY['recebida'::text, 'pendente'::text, 'enviada'::text, 'erro'::text])))"
+				},
+				{
+					"nome": "bot_mensagens_status_coerente",
+					"def": "CHECK ((((direcao = 'entrada'::text) AND (status = 'recebida'::text)) OR (direcao = 'saida'::text)))"
+				},
+				{
+					"nome": "bot_mensagens_tipo_check",
+					"def": "CHECK ((tipo = ANY (ARRAY['texto'::text, 'imagem'::text, 'audio'::text, 'video'::text, 'documento'::text, 'sistema'::text])))"
+				}
+			],
+			"indices": [
+				"CREATE UNIQUE INDEX bot_mensagens_pkey ON public.bot_mensagens USING btree (id)",
+				"CREATE INDEX idx_bot_mensagens_conversa ON public.bot_mensagens USING btree (conversa_id, created_at DESC)",
+				"CREATE INDEX idx_bot_mensagens_disparo ON public.bot_mensagens USING btree (disparo_id) WHERE (disparo_id IS NOT NULL)",
+				"CREATE INDEX idx_bot_mensagens_fila ON public.bot_mensagens USING btree (agendado_para, created_at) WHERE (status = 'pendente'::text)",
+				"CREATE UNIQUE INDEX idx_bot_mensagens_wa_id ON public.bot_mensagens USING btree (conversa_id, wa_id) WHERE (wa_id IS NOT NULL)"
+			]
+		},
+		"bot_opcoes": {
+			"rls": true,
+			"colunas": [
+				{
+					"nome": "id",
+					"tipo": "uuid",
+					"nulo": false,
+					"padrao": "gen_random_uuid()"
+				},
+				{
+					"nome": "passo_id",
+					"tipo": "uuid",
+					"nulo": false,
+					"padrao": null
+				},
+				{
+					"nome": "rotulo",
+					"tipo": "text",
+					"nulo": false,
+					"padrao": null
+				},
+				{
+					"nome": "gatilho",
+					"tipo": "text",
+					"nulo": false,
+					"padrao": null
+				},
+				{
+					"nome": "proximo_passo_id",
+					"tipo": "uuid",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "posicao",
+					"tipo": "double precision",
+					"nulo": false,
+					"padrao": "1000"
+				},
+				{
+					"nome": "created_at",
+					"tipo": "timestamp with time zone",
+					"nulo": false,
+					"padrao": "now()"
+				},
+				{
+					"nome": "sinonimos",
+					"tipo": "text[]",
+					"nulo": false,
+					"padrao": "'{}'::text[]"
+				}
+			],
+			"restricoes": [
+				{
+					"nome": "bot_opcoes_passo_id_fkey",
+					"def": "FOREIGN KEY (passo_id) REFERENCES bot_passos(id) ON DELETE CASCADE"
+				},
+				{
+					"nome": "bot_opcoes_pkey",
+					"def": "PRIMARY KEY (id)"
+				},
+				{
+					"nome": "bot_opcoes_proximo_passo_id_fkey",
+					"def": "FOREIGN KEY (proximo_passo_id) REFERENCES bot_passos(id) ON DELETE SET NULL"
+				}
+			],
+			"indices": [
+				"CREATE UNIQUE INDEX bot_opcoes_pkey ON public.bot_opcoes USING btree (id)",
+				"CREATE INDEX idx_bot_opcoes_passo ON public.bot_opcoes USING btree (passo_id, posicao)"
+			]
+		},
+		"bot_passos": {
+			"rls": true,
+			"colunas": [
+				{
+					"nome": "id",
+					"tipo": "uuid",
+					"nulo": false,
+					"padrao": "gen_random_uuid()"
+				},
+				{
+					"nome": "fluxo_id",
+					"tipo": "uuid",
+					"nulo": false,
+					"padrao": null
+				},
+				{
+					"nome": "chave",
+					"tipo": "text",
+					"nulo": false,
+					"padrao": null
+				},
+				{
+					"nome": "tipo",
+					"tipo": "text",
+					"nulo": false,
+					"padrao": "'mensagem'::text"
+				},
+				{
+					"nome": "conteudo",
+					"tipo": "text",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "posicao",
+					"tipo": "double precision",
+					"nulo": false,
+					"padrao": "1000"
+				},
+				{
+					"nome": "proximo_passo_id",
+					"tipo": "uuid",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "acao",
+					"tipo": "text",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "acao_params",
+					"tipo": "jsonb",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "created_at",
+					"tipo": "timestamp with time zone",
+					"nulo": false,
+					"padrao": "now()"
+				},
+				{
+					"nome": "updated_at",
+					"tipo": "timestamp with time zone",
+					"nulo": false,
+					"padrao": "now()"
+				}
+			],
+			"restricoes": [
+				{
+					"nome": "bot_passos_chave_unica",
+					"def": "UNIQUE (fluxo_id, chave)"
+				},
+				{
+					"nome": "bot_passos_fluxo_id_fkey",
+					"def": "FOREIGN KEY (fluxo_id) REFERENCES bot_fluxos(id) ON DELETE CASCADE"
+				},
+				{
+					"nome": "bot_passos_pkey",
+					"def": "PRIMARY KEY (id)"
+				},
+				{
+					"nome": "bot_passos_proximo_passo_id_fkey",
+					"def": "FOREIGN KEY (proximo_passo_id) REFERENCES bot_passos(id) ON DELETE SET NULL"
+				},
+				{
+					"nome": "bot_passos_tipo_check",
+					"def": "CHECK ((tipo = ANY (ARRAY['mensagem'::text, 'pergunta'::text, 'acao'::text, 'transferir'::text, 'encerrar'::text])))"
+				}
+			],
+			"indices": [
+				"CREATE UNIQUE INDEX bot_passos_pkey ON public.bot_passos USING btree (id)",
+				"CREATE UNIQUE INDEX bot_passos_chave_unica ON public.bot_passos USING btree (fluxo_id, chave)",
+				"CREATE INDEX idx_bot_passos_fluxo ON public.bot_passos USING btree (fluxo_id, posicao)"
+			]
+		},
+		"bot_verificacoes": {
+			"rls": true,
+			"colunas": [
+				{
+					"nome": "id",
+					"tipo": "uuid",
+					"nulo": false,
+					"padrao": "gen_random_uuid()"
+				},
+				{
+					"nome": "token",
+					"tipo": "text",
+					"nulo": false,
+					"padrao": null
+				},
+				{
+					"nome": "finalidade",
+					"tipo": "text",
+					"nulo": false,
+					"padrao": "'cadastro'::text"
+				},
+				{
+					"nome": "profile_id",
+					"tipo": "uuid",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "email",
+					"tipo": "text",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "telefone",
+					"tipo": "text",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "nome_whatsapp",
+					"tipo": "text",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "conexao_id",
+					"tipo": "uuid",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "conversa_id",
+					"tipo": "uuid",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "verificado_em",
+					"tipo": "timestamp with time zone",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "expira_em",
+					"tipo": "timestamp with time zone",
+					"nulo": false,
+					"padrao": "(now() + '00:30:00'::interval)"
+				},
+				{
+					"nome": "tentativas",
+					"tipo": "smallint",
+					"nulo": false,
+					"padrao": "0"
+				},
+				{
+					"nome": "created_at",
+					"tipo": "timestamp with time zone",
+					"nulo": false,
+					"padrao": "now()"
+				}
+			],
+			"restricoes": [
+				{
+					"nome": "bot_verificacoes_conexao_id_fkey",
+					"def": "FOREIGN KEY (conexao_id) REFERENCES bot_conexoes(id) ON DELETE SET NULL"
+				},
+				{
+					"nome": "bot_verificacoes_conversa_id_fkey",
+					"def": "FOREIGN KEY (conversa_id) REFERENCES bot_conversas(id) ON DELETE SET NULL"
+				},
+				{
+					"nome": "bot_verificacoes_finalidade_check",
+					"def": "CHECK ((finalidade = ANY (ARRAY['cadastro'::text, 'login'::text, 'trocar_telefone'::text, 'lead'::text])))"
+				},
+				{
+					"nome": "bot_verificacoes_pkey",
+					"def": "PRIMARY KEY (id)"
+				},
+				{
+					"nome": "bot_verificacoes_profile_id_fkey",
+					"def": "FOREIGN KEY (profile_id) REFERENCES profiles(id) ON DELETE CASCADE"
+				},
+				{
+					"nome": "bot_verificacoes_token_key",
+					"def": "UNIQUE (token)"
+				}
+			],
+			"indices": [
+				"CREATE UNIQUE INDEX bot_verificacoes_pkey ON public.bot_verificacoes USING btree (id)",
+				"CREATE UNIQUE INDEX bot_verificacoes_token_key ON public.bot_verificacoes USING btree (token)",
+				"CREATE INDEX idx_bot_verificacoes_abertas ON public.bot_verificacoes USING btree (token) WHERE (verificado_em IS NULL)",
+				"CREATE INDEX idx_bot_verificacoes_profile ON public.bot_verificacoes USING btree (profile_id)"
+			]
+		},
+		"crm_atividades": {
+			"rls": true,
+			"colunas": [
+				{
+					"nome": "id",
+					"tipo": "uuid",
+					"nulo": false,
+					"padrao": "gen_random_uuid()"
+				},
+				{
+					"nome": "cartao_id",
+					"tipo": "uuid",
+					"nulo": false,
+					"padrao": null
+				},
+				{
+					"nome": "tipo",
+					"tipo": "text",
+					"nulo": false,
+					"padrao": null
+				},
+				{
+					"nome": "corpo",
+					"tipo": "text",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "de_coluna_id",
+					"tipo": "uuid",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "para_coluna_id",
+					"tipo": "uuid",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "meta",
+					"tipo": "jsonb",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "criado_por",
+					"tipo": "uuid",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "created_at",
+					"tipo": "timestamp with time zone",
+					"nulo": false,
+					"padrao": "now()"
+				}
+			],
+			"restricoes": [
+				{
+					"nome": "crm_atividades_cartao_id_fkey",
+					"def": "FOREIGN KEY (cartao_id) REFERENCES crm_cartoes(id) ON DELETE CASCADE"
+				},
+				{
+					"nome": "crm_atividades_criado_por_fkey",
+					"def": "FOREIGN KEY (criado_por) REFERENCES profiles(id) ON DELETE SET NULL"
+				},
+				{
+					"nome": "crm_atividades_de_coluna_id_fkey",
+					"def": "FOREIGN KEY (de_coluna_id) REFERENCES crm_colunas(id) ON DELETE SET NULL"
+				},
+				{
+					"nome": "crm_atividades_para_coluna_id_fkey",
+					"def": "FOREIGN KEY (para_coluna_id) REFERENCES crm_colunas(id) ON DELETE SET NULL"
+				},
+				{
+					"nome": "crm_atividades_pkey",
+					"def": "PRIMARY KEY (id)"
+				},
+				{
+					"nome": "crm_atividades_tipo_check",
+					"def": "CHECK ((tipo = ANY (ARRAY['comentario'::text, 'mudanca_coluna'::text, 'ligacao'::text, 'whatsapp'::text, 'email'::text, 'visita'::text, 'tarefa'::text, 'sistema'::text])))"
+				}
+			],
+			"indices": [
+				"CREATE UNIQUE INDEX crm_atividades_pkey ON public.crm_atividades USING btree (id)",
+				"CREATE INDEX idx_crm_atividades_cartao ON public.crm_atividades USING btree (cartao_id, created_at DESC)"
+			]
+		},
+		"crm_cartao_etiquetas": {
+			"rls": true,
+			"colunas": [
+				{
+					"nome": "cartao_id",
+					"tipo": "uuid",
+					"nulo": false,
+					"padrao": null
+				},
+				{
+					"nome": "etiqueta_id",
+					"tipo": "uuid",
+					"nulo": false,
+					"padrao": null
+				}
+			],
+			"restricoes": [
+				{
+					"nome": "crm_cartao_etiquetas_cartao_id_fkey",
+					"def": "FOREIGN KEY (cartao_id) REFERENCES crm_cartoes(id) ON DELETE CASCADE"
+				},
+				{
+					"nome": "crm_cartao_etiquetas_etiqueta_id_fkey",
+					"def": "FOREIGN KEY (etiqueta_id) REFERENCES crm_etiquetas(id) ON DELETE CASCADE"
+				},
+				{
+					"nome": "crm_cartao_etiquetas_pkey",
+					"def": "PRIMARY KEY (cartao_id, etiqueta_id)"
+				}
+			],
+			"indices": [
+				"CREATE UNIQUE INDEX crm_cartao_etiquetas_pkey ON public.crm_cartao_etiquetas USING btree (cartao_id, etiqueta_id)"
+			]
+		},
+		"crm_cartoes": {
+			"rls": true,
+			"colunas": [
+				{
+					"nome": "id",
+					"tipo": "uuid",
+					"nulo": false,
+					"padrao": "gen_random_uuid()"
+				},
+				{
+					"nome": "quadro_id",
+					"tipo": "uuid",
+					"nulo": false,
+					"padrao": null
+				},
+				{
+					"nome": "coluna_id",
+					"tipo": "uuid",
+					"nulo": false,
+					"padrao": null
+				},
+				{
+					"nome": "posicao",
+					"tipo": "double precision",
+					"nulo": false,
+					"padrao": "1000"
+				},
+				{
+					"nome": "titulo",
+					"tipo": "text",
+					"nulo": false,
+					"padrao": null
+				},
+				{
+					"nome": "descricao",
+					"tipo": "text",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "lead_id",
+					"tipo": "uuid",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "profile_id",
+					"tipo": "uuid",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "contato_nome",
+					"tipo": "text",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "contato_telefone",
+					"tipo": "text",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "contato_email",
+					"tipo": "text",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "responsavel_id",
+					"tipo": "uuid",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "vence_em",
+					"tipo": "timestamp with time zone",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "prioridade",
+					"tipo": "text",
+					"nulo": false,
+					"padrao": "'normal'::text"
+				},
+				{
+					"nome": "arquivado_em",
+					"tipo": "timestamp with time zone",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "criado_por",
+					"tipo": "uuid",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "created_at",
+					"tipo": "timestamp with time zone",
+					"nulo": false,
+					"padrao": "now()"
+				},
+				{
+					"nome": "updated_at",
+					"tipo": "timestamp with time zone",
+					"nulo": false,
+					"padrao": "now()"
+				},
+				{
+					"nome": "origem",
+					"tipo": "text",
+					"nulo": true,
+					"padrao": null
+				}
+			],
+			"restricoes": [
+				{
+					"nome": "crm_cartoes_coluna_id_fkey",
+					"def": "FOREIGN KEY (coluna_id) REFERENCES crm_colunas(id) ON DELETE CASCADE"
+				},
+				{
+					"nome": "crm_cartoes_criado_por_fkey",
+					"def": "FOREIGN KEY (criado_por) REFERENCES profiles(id) ON DELETE SET NULL"
+				},
+				{
+					"nome": "crm_cartoes_lead_id_fkey",
+					"def": "FOREIGN KEY (lead_id) REFERENCES leads(id) ON DELETE SET NULL"
+				},
+				{
+					"nome": "crm_cartoes_pkey",
+					"def": "PRIMARY KEY (id)"
+				},
+				{
+					"nome": "crm_cartoes_prioridade_check",
+					"def": "CHECK ((prioridade = ANY (ARRAY['baixa'::text, 'normal'::text, 'alta'::text])))"
+				},
+				{
+					"nome": "crm_cartoes_profile_id_fkey",
+					"def": "FOREIGN KEY (profile_id) REFERENCES profiles(id) ON DELETE SET NULL"
+				},
+				{
+					"nome": "crm_cartoes_quadro_id_fkey",
+					"def": "FOREIGN KEY (quadro_id) REFERENCES crm_quadros(id) ON DELETE CASCADE"
+				},
+				{
+					"nome": "crm_cartoes_responsavel_id_fkey",
+					"def": "FOREIGN KEY (responsavel_id) REFERENCES profiles(id) ON DELETE SET NULL"
+				}
+			],
+			"indices": [
+				"CREATE UNIQUE INDEX crm_cartoes_pkey ON public.crm_cartoes USING btree (id)",
+				"CREATE INDEX idx_crm_cartoes_coluna ON public.crm_cartoes USING btree (coluna_id, posicao)",
+				"CREATE INDEX idx_crm_cartoes_lead ON public.crm_cartoes USING btree (lead_id)",
+				"CREATE INDEX idx_crm_cartoes_quadro ON public.crm_cartoes USING btree (quadro_id)",
+				"CREATE INDEX idx_crm_cartoes_responsavel ON public.crm_cartoes USING btree (responsavel_id)",
+				"CREATE INDEX idx_crm_cartoes_telefone ON public.crm_cartoes USING btree (quadro_id, contato_telefone) WHERE (contato_telefone IS NOT NULL)",
+				"CREATE INDEX idx_crm_cartoes_vence ON public.crm_cartoes USING btree (vence_em) WHERE (arquivado_em IS NULL)"
+			]
+		},
+		"crm_colunas": {
+			"rls": true,
+			"colunas": [
+				{
+					"nome": "id",
+					"tipo": "uuid",
+					"nulo": false,
+					"padrao": "gen_random_uuid()"
+				},
+				{
+					"nome": "quadro_id",
+					"tipo": "uuid",
+					"nulo": false,
+					"padrao": null
+				},
+				{
+					"nome": "nome",
+					"tipo": "text",
+					"nulo": false,
+					"padrao": null
+				},
+				{
+					"nome": "posicao",
+					"tipo": "double precision",
+					"nulo": false,
+					"padrao": "1000"
+				},
+				{
+					"nome": "cor",
+					"tipo": "text",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "tipo",
+					"tipo": "text",
+					"nulo": false,
+					"padrao": "'normal'::text"
+				},
+				{
+					"nome": "limite_cartoes",
+					"tipo": "integer",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "created_at",
+					"tipo": "timestamp with time zone",
+					"nulo": false,
+					"padrao": "now()"
+				},
+				{
+					"nome": "updated_at",
+					"tipo": "timestamp with time zone",
+					"nulo": false,
+					"padrao": "now()"
+				}
+			],
+			"restricoes": [
+				{
+					"nome": "crm_colunas_limite_cartoes_check",
+					"def": "CHECK (((limite_cartoes IS NULL) OR (limite_cartoes > 0)))"
+				},
+				{
+					"nome": "crm_colunas_pkey",
+					"def": "PRIMARY KEY (id)"
+				},
+				{
+					"nome": "crm_colunas_quadro_id_fkey",
+					"def": "FOREIGN KEY (quadro_id) REFERENCES crm_quadros(id) ON DELETE CASCADE"
+				},
+				{
+					"nome": "crm_colunas_tipo_check",
+					"def": "CHECK ((tipo = ANY (ARRAY['normal'::text, 'ganho'::text, 'perdido'::text])))"
+				}
+			],
+			"indices": [
+				"CREATE UNIQUE INDEX crm_colunas_pkey ON public.crm_colunas USING btree (id)",
+				"CREATE INDEX idx_crm_colunas_quadro ON public.crm_colunas USING btree (quadro_id, posicao)"
+			]
+		},
+		"crm_etiquetas": {
+			"rls": true,
+			"colunas": [
+				{
+					"nome": "id",
+					"tipo": "uuid",
+					"nulo": false,
+					"padrao": "gen_random_uuid()"
+				},
+				{
+					"nome": "quadro_id",
+					"tipo": "uuid",
+					"nulo": false,
+					"padrao": null
+				},
+				{
+					"nome": "nome",
+					"tipo": "text",
+					"nulo": false,
+					"padrao": null
+				},
+				{
+					"nome": "cor",
+					"tipo": "text",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "created_at",
+					"tipo": "timestamp with time zone",
+					"nulo": false,
+					"padrao": "now()"
+				}
+			],
+			"restricoes": [
+				{
+					"nome": "crm_etiquetas_pkey",
+					"def": "PRIMARY KEY (id)"
+				},
+				{
+					"nome": "crm_etiquetas_quadro_id_fkey",
+					"def": "FOREIGN KEY (quadro_id) REFERENCES crm_quadros(id) ON DELETE CASCADE"
+				}
+			],
+			"indices": [
+				"CREATE UNIQUE INDEX crm_etiquetas_pkey ON public.crm_etiquetas USING btree (id)",
+				"CREATE INDEX idx_crm_etiquetas_quadro ON public.crm_etiquetas USING btree (quadro_id)"
+			]
+		},
+		"crm_quadros": {
+			"rls": true,
+			"colunas": [
+				{
+					"nome": "id",
+					"tipo": "uuid",
+					"nulo": false,
+					"padrao": "gen_random_uuid()"
+				},
+				{
+					"nome": "escopo",
+					"tipo": "text",
+					"nulo": false,
+					"padrao": null
+				},
+				{
+					"nome": "owner_id",
+					"tipo": "uuid",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "nome",
+					"tipo": "text",
+					"nulo": false,
+					"padrao": null
+				},
+				{
+					"nome": "descricao",
+					"tipo": "text",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "modelo",
+					"tipo": "boolean",
+					"nulo": false,
+					"padrao": "false"
+				},
+				{
+					"nome": "clonado_de",
+					"tipo": "uuid",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "arquivado_em",
+					"tipo": "timestamp with time zone",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "criado_por",
+					"tipo": "uuid",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "created_at",
+					"tipo": "timestamp with time zone",
+					"nulo": false,
+					"padrao": "now()"
+				},
+				{
+					"nome": "updated_at",
+					"tipo": "timestamp with time zone",
+					"nulo": false,
+					"padrao": "now()"
+				},
+				{
+					"nome": "tipo",
+					"tipo": "text",
+					"nulo": false,
+					"padrao": "'funil'::text"
+				}
+			],
+			"restricoes": [
+				{
+					"nome": "crm_quadros_clonado_de_fkey",
+					"def": "FOREIGN KEY (clonado_de) REFERENCES crm_quadros(id) ON DELETE SET NULL"
+				},
+				{
+					"nome": "crm_quadros_criado_por_fkey",
+					"def": "FOREIGN KEY (criado_por) REFERENCES profiles(id) ON DELETE SET NULL"
+				},
+				{
+					"nome": "crm_quadros_escopo_check",
+					"def": "CHECK ((escopo = ANY (ARRAY['parceiro'::text, 'coach'::text, 'profissional'::text, 'admin'::text])))"
+				},
+				{
+					"nome": "crm_quadros_owner_coerente",
+					"def": "CHECK ((((escopo = 'admin'::text) AND (owner_id IS NULL)) OR ((escopo <> 'admin'::text) AND (owner_id IS NOT NULL))))"
+				},
+				{
+					"nome": "crm_quadros_pkey",
+					"def": "PRIMARY KEY (id)"
+				},
+				{
+					"nome": "crm_quadros_tipo_valido",
+					"def": "CHECK ((tipo = ANY (ARRAY['funil'::text, 'quadro'::text])))"
+				}
+			],
+			"indices": [
+				"CREATE UNIQUE INDEX crm_quadros_pkey ON public.crm_quadros USING btree (id)",
+				"CREATE INDEX idx_crm_quadros_dono ON public.crm_quadros USING btree (escopo, owner_id)",
+				"CREATE INDEX idx_crm_quadros_modelo ON public.crm_quadros USING btree (modelo) WHERE (modelo = true)",
+				"CREATE INDEX idx_crm_quadros_tipo ON public.crm_quadros USING btree (escopo, owner_id, tipo)"
+			]
+		},
+		"conector_versoes": {
+			"rls": true,
+			"colunas": [
+				{
+					"nome": "id",
+					"tipo": "uuid",
+					"nulo": false,
+					"padrao": "gen_random_uuid()"
+				},
+				{
+					"nome": "versao",
+					"tipo": "text",
+					"nulo": false,
+					"padrao": null
+				},
+				{
+					"nome": "arquivos",
+					"tipo": "jsonb",
+					"nulo": false,
+					"padrao": null
+				},
+				{
+					"nome": "notas",
+					"tipo": "text",
+					"nulo": true,
+					"padrao": null
+				},
+				{
+					"nome": "created_at",
+					"tipo": "timestamp with time zone",
+					"nulo": false,
+					"padrao": "now()"
+				}
+			],
+			"restricoes": [
+				{
+					"nome": "conector_versoes_pkey",
+					"def": "PRIMARY KEY (id)"
+				},
+				{
+					"nome": "conector_versoes_versao_key",
+					"def": "UNIQUE (versao)"
+				}
+			],
+			"indices": [
+				"CREATE UNIQUE INDEX conector_versoes_pkey ON public.conector_versoes USING btree (id)",
+				"CREATE UNIQUE INDEX conector_versoes_versao_key ON public.conector_versoes USING btree (versao)"
+			]
+		}
+	},
+	"policies": [
+		{
+			"tabela": "bot_conexoes",
+			"nome": "Apagar minhas conexoes",
+			"cmd": "DELETE",
+			"papeis": [
+				"authenticated"
+			],
+			"using": "bot_acesso_dono(escopo, owner_id)",
+			"check": null
+		},
+		{
+			"tabela": "bot_conexoes",
+			"nome": "Criar conexao no meu escopo",
+			"cmd": "INSERT",
+			"papeis": [
+				"authenticated"
+			],
+			"using": null,
+			"check": "bot_acesso_dono(escopo, owner_id)"
+		},
+		{
+			"tabela": "bot_conexoes",
+			"nome": "Editar minhas conexoes",
+			"cmd": "UPDATE",
+			"papeis": [
+				"authenticated"
+			],
+			"using": "bot_acesso_dono(escopo, owner_id)",
+			"check": "bot_acesso_dono(escopo, owner_id)"
+		},
+		{
+			"tabela": "bot_conexoes",
+			"nome": "Ver conexoes do meu escopo",
+			"cmd": "SELECT",
+			"papeis": [
+				"authenticated"
+			],
+			"using": "bot_acesso_dono(escopo, owner_id)",
+			"check": null
+		},
+		{
+			"tabela": "bot_conversas",
+			"nome": "Acesso total via conexao",
+			"cmd": "ALL",
+			"papeis": [
+				"authenticated"
+			],
+			"using": "bot_acesso_conexao(conexao_id)",
+			"check": "bot_acesso_conexao(conexao_id)"
+		},
+		{
+			"tabela": "bot_disparo_alvos",
+			"nome": "Acesso via disparo",
+			"cmd": "ALL",
+			"papeis": [
+				"authenticated"
+			],
+			"using": "(EXISTS ( SELECT 1\n   FROM bot_disparos d\n  WHERE ((d.id = bot_disparo_alvos.disparo_id) AND bot_acesso_dono(d.escopo, d.owner_id))))",
+			"check": "(EXISTS ( SELECT 1\n   FROM bot_disparos d\n  WHERE ((d.id = bot_disparo_alvos.disparo_id) AND bot_acesso_dono(d.escopo, d.owner_id))))"
+		},
+		{
+			"tabela": "bot_disparos",
+			"nome": "Acesso via dono",
+			"cmd": "ALL",
+			"papeis": [
+				"authenticated"
+			],
+			"using": "bot_acesso_dono(escopo, owner_id)",
+			"check": "bot_acesso_dono(escopo, owner_id)"
+		},
+		{
+			"tabela": "bot_fluxos",
+			"nome": "Apagar meus fluxos",
+			"cmd": "DELETE",
+			"papeis": [
+				"authenticated"
+			],
+			"using": "bot_acesso_dono(escopo, owner_id)",
+			"check": null
+		},
+		{
+			"tabela": "bot_fluxos",
+			"nome": "Criar fluxo no meu escopo",
+			"cmd": "INSERT",
+			"papeis": [
+				"authenticated"
+			],
+			"using": null,
+			"check": "bot_acesso_dono(escopo, owner_id)"
+		},
+		{
+			"tabela": "bot_fluxos",
+			"nome": "Editar meus fluxos",
+			"cmd": "UPDATE",
+			"papeis": [
+				"authenticated"
+			],
+			"using": "bot_acesso_dono(escopo, owner_id)",
+			"check": "bot_acesso_dono(escopo, owner_id)"
+		},
+		{
+			"tabela": "bot_fluxos",
+			"nome": "Ver fluxos do meu escopo",
+			"cmd": "SELECT",
+			"papeis": [
+				"authenticated"
+			],
+			"using": "(bot_acesso_dono(escopo, owner_id) OR (modelo = true))",
+			"check": null
+		},
+		{
+			"tabela": "bot_mensagens",
+			"nome": "Acesso total via conversa",
+			"cmd": "ALL",
+			"papeis": [
+				"authenticated"
+			],
+			"using": "(EXISTS ( SELECT 1\n   FROM bot_conversas c\n  WHERE ((c.id = bot_mensagens.conversa_id) AND bot_acesso_conexao(c.conexao_id))))",
+			"check": "(EXISTS ( SELECT 1\n   FROM bot_conversas c\n  WHERE ((c.id = bot_mensagens.conversa_id) AND bot_acesso_conexao(c.conexao_id))))"
+		},
+		{
+			"tabela": "bot_opcoes",
+			"nome": "Acesso total via passo",
+			"cmd": "ALL",
+			"papeis": [
+				"authenticated"
+			],
+			"using": "(EXISTS ( SELECT 1\n   FROM bot_passos p\n  WHERE ((p.id = bot_opcoes.passo_id) AND bot_acesso_fluxo(p.fluxo_id))))",
+			"check": "(EXISTS ( SELECT 1\n   FROM bot_passos p\n  WHERE ((p.id = bot_opcoes.passo_id) AND bot_acesso_fluxo(p.fluxo_id))))"
+		},
+		{
+			"tabela": "bot_passos",
+			"nome": "Acesso total via fluxo",
+			"cmd": "ALL",
+			"papeis": [
+				"authenticated"
+			],
+			"using": "bot_acesso_fluxo(fluxo_id)",
+			"check": "bot_acesso_fluxo(fluxo_id)"
+		},
+		{
+			"tabela": "crm_atividades",
+			"nome": "Acesso total via cartao",
+			"cmd": "ALL",
+			"papeis": [
+				"authenticated"
+			],
+			"using": "(EXISTS ( SELECT 1\n   FROM crm_cartoes c\n  WHERE ((c.id = crm_atividades.cartao_id) AND crm_acesso_quadro(c.quadro_id))))",
+			"check": "(EXISTS ( SELECT 1\n   FROM crm_cartoes c\n  WHERE ((c.id = crm_atividades.cartao_id) AND crm_acesso_quadro(c.quadro_id))))"
+		},
+		{
+			"tabela": "crm_cartao_etiquetas",
+			"nome": "Acesso total via cartao",
+			"cmd": "ALL",
+			"papeis": [
+				"authenticated"
+			],
+			"using": "(EXISTS ( SELECT 1\n   FROM crm_cartoes c\n  WHERE ((c.id = crm_cartao_etiquetas.cartao_id) AND crm_acesso_quadro(c.quadro_id))))",
+			"check": "(EXISTS ( SELECT 1\n   FROM crm_cartoes c\n  WHERE ((c.id = crm_cartao_etiquetas.cartao_id) AND crm_acesso_quadro(c.quadro_id))))"
+		},
+		{
+			"tabela": "crm_cartoes",
+			"nome": "Acesso total via quadro",
+			"cmd": "ALL",
+			"papeis": [
+				"authenticated"
+			],
+			"using": "crm_acesso_quadro(quadro_id)",
+			"check": "crm_acesso_quadro(quadro_id)"
+		},
+		{
+			"tabela": "crm_colunas",
+			"nome": "Acesso total via quadro",
+			"cmd": "ALL",
+			"papeis": [
+				"authenticated"
+			],
+			"using": "crm_acesso_quadro(quadro_id)",
+			"check": "crm_acesso_quadro(quadro_id)"
+		},
+		{
+			"tabela": "crm_etiquetas",
+			"nome": "Acesso total via quadro",
+			"cmd": "ALL",
+			"papeis": [
+				"authenticated"
+			],
+			"using": "crm_acesso_quadro(quadro_id)",
+			"check": "crm_acesso_quadro(quadro_id)"
+		},
+		{
+			"tabela": "crm_quadros",
+			"nome": "Apagar meus quadros",
+			"cmd": "DELETE",
+			"papeis": [
+				"authenticated"
+			],
+			"using": "crm_acesso_quadro(id)",
+			"check": null
+		},
+		{
+			"tabela": "crm_quadros",
+			"nome": "Criar quadro no meu escopo",
+			"cmd": "INSERT",
+			"papeis": [
+				"authenticated"
+			],
+			"using": null,
+			"check": "(COALESCE(is_admin(auth.uid()), false) OR\nCASE escopo\n    WHEN 'parceiro'::text THEN partner_pode(owner_id, 'crm'::text)\n    WHEN 'coach'::text THEN (EXISTS ( SELECT 1\n       FROM profiles pr\n      WHERE ((pr.id = crm_quadros.owner_id) AND (pr.user_id = auth.uid()))))\n    WHEN 'profissional'::text THEN (EXISTS ( SELECT 1\n       FROM profiles pr\n      WHERE ((pr.id = crm_quadros.owner_id) AND (pr.user_id = auth.uid()))))\n    WHEN 'admin'::text THEN COALESCE(is_admin(auth.uid()), false)\n    ELSE false\nEND)"
+		},
+		{
+			"tabela": "crm_quadros",
+			"nome": "Editar meus quadros",
+			"cmd": "UPDATE",
+			"papeis": [
+				"authenticated"
+			],
+			"using": "crm_acesso_quadro(id)",
+			"check": "crm_acesso_quadro(id)"
+		},
+		{
+			"tabela": "crm_quadros",
+			"nome": "Ver quadros do meu escopo",
+			"cmd": "SELECT",
+			"papeis": [
+				"authenticated"
+			],
+			"using": "(crm_acesso_quadro(id) OR (modelo = true))",
+			"check": null
+		},
+		{
+			"tabela": "partners",
+			"nome": "Ver empresas onde trabalho",
+			"cmd": "SELECT",
+			"papeis": [
+				"authenticated"
+			],
+			"using": "(partner_pode(id, 'robo'::text) OR partner_pode(id, 'crm'::text))",
+			"check": null
+		},
+		{
+			"tabela": "profiles",
+			"nome": "Ver meu profile",
+			"cmd": "SELECT",
+			"papeis": [
+				"authenticated"
+			],
+			"using": "(user_id = auth.uid())",
+			"check": null
+		}
+	],
+	"funcoes": [
+		{
+			"nome": "academia_parceiros_do_grupo",
+			"args": "p_partner_id uuid",
+			"security_definer": true,
+			"md5": "341ca07a3d7530eb6efdf6ed29f66f53",
+			"execute_anon": true,
+			"execute_authenticated": true
+		},
+		{
+			"nome": "bootstrap_empresa_completa",
+			"args": "_user_id uuid, _empresa_nome text, _cidade text, _estado text",
+			"security_definer": true,
+			"md5": "89f05bd4a56cec4be14345232f61ad53",
+			"execute_anon": true,
+			"execute_authenticated": true
+		},
+		{
+			"nome": "bot_acesso_conexao",
+			"args": "_conexao_id uuid",
+			"security_definer": true,
+			"md5": "b60da635dd34d107f28e4583df6020ee",
+			"execute_anon": true,
+			"execute_authenticated": true
+		},
+		{
+			"nome": "bot_acesso_dono",
+			"args": "_escopo text, _owner_id uuid",
+			"security_definer": true,
+			"md5": "a918034d884f58a340c7e0519fa06ca0",
+			"execute_anon": true,
+			"execute_authenticated": true
+		},
+		{
+			"nome": "bot_acesso_fluxo",
+			"args": "_fluxo_id uuid",
+			"security_definer": true,
+			"md5": "fb4d23fea3c125fd1233736e402283b4",
+			"execute_anon": true,
+			"execute_authenticated": true
+		},
+		{
+			"nome": "bot_bloquear_conexao",
+			"args": "_conexao_id uuid, _motivo text",
+			"security_definer": true,
+			"md5": "aacdb1b03ea7e262e64d88abe151a3d4",
+			"execute_anon": true,
+			"execute_authenticated": true
+		},
+		{
+			"nome": "bot_clonar_fluxo",
+			"args": "_origem_id uuid, _escopo text, _owner_id uuid, _nome text",
+			"security_definer": true,
+			"md5": "b4152a0ccd9d89cb863e095000611ae7",
+			"execute_anon": true,
+			"execute_authenticated": true
+		},
+		{
+			"nome": "bot_confirmar_verificacao",
+			"args": "_token text, _telefone text, _conexao_id uuid, _conversa_id uuid, _nome text",
+			"security_definer": true,
+			"md5": "cfcc05cda208bbf71f48162ccb7f3092",
+			"execute_anon": true,
+			"execute_authenticated": true
+		},
+		{
+			"nome": "bot_contar_envio",
+			"args": "_conexao_id uuid",
+			"security_definer": true,
+			"md5": "db8f4c4cbb28fd165c1c84f17bc35246",
+			"execute_anon": true,
+			"execute_authenticated": true
+		},
+		{
+			"nome": "bot_dia_da_conexao",
+			"args": "_conexao_id uuid",
+			"security_definer": true,
+			"md5": "7c4fed30920a3e77cfafb40477bc7a29",
+			"execute_anon": true,
+			"execute_authenticated": true
+		},
+		{
+			"nome": "bot_escolher_conexao",
+			"args": "_escopo text, _owner_id uuid, _uso text",
+			"security_definer": true,
+			"md5": "3950b3ae9736f1f27f4a9bfc17196f74",
+			"execute_anon": true,
+			"execute_authenticated": true
+		},
+		{
+			"nome": "bot_marcar_ultima_mensagem",
+			"args": "",
+			"security_definer": true,
+			"md5": "dafa5441597b02faa5336049fb980d35",
+			"execute_anon": true,
+			"execute_authenticated": true
+		},
+		{
+			"nome": "bot_registrar_no_cartao",
+			"args": "_conversa_id uuid, _texto text, _direcao text",
+			"security_definer": true,
+			"md5": "20baaec49811cfc372482b4ff5fece87",
+			"execute_anon": true,
+			"execute_authenticated": true
+		},
+		{
+			"nome": "bot_vincular_cartao",
+			"args": "_conversa_id uuid",
+			"security_definer": true,
+			"md5": "9aa7a1372e5f5641e92de166db51d197",
+			"execute_anon": true,
+			"execute_authenticated": true
+		},
+		{
+			"nome": "criar_profile_do_usuario",
+			"args": "",
+			"security_definer": true,
+			"md5": "3924e5d0d89905a0c4e51f7729c5e9b1",
+			"execute_anon": true,
+			"execute_authenticated": true
+		},
+		{
+			"nome": "crm_acesso_quadro",
+			"args": "_quadro_id uuid",
+			"security_definer": true,
+			"md5": "1046cf5d93160b9ca919c356a901c66e",
+			"execute_anon": true,
+			"execute_authenticated": true
+		},
+		{
+			"nome": "crm_clonar_quadro",
+			"args": "_origem_id uuid, _escopo text, _owner_id uuid, _nome text",
+			"security_definer": true,
+			"md5": "0da0e8565ad3507e619831bb3e3273c5",
+			"execute_anon": true,
+			"execute_authenticated": true
+		},
+		{
+			"nome": "crm_criar_quadro",
+			"args": "_escopo text, _owner_id uuid, _nome text, _tipo text",
+			"security_definer": true,
+			"md5": "ae5ecc063f3bc1d6678a709dc6b70ef3",
+			"execute_anon": true,
+			"execute_authenticated": true
+		},
+		{
+			"nome": "crm_importar_contatos",
+			"args": "_quadro_id uuid, _contatos jsonb, _origem text, _coluna_id uuid",
+			"security_definer": true,
+			"md5": "d3c7363b42aafe219c96ba43d4edf0dc",
+			"execute_anon": true,
+			"execute_authenticated": true
+		},
+		{
+			"nome": "crm_registrar_mudanca_coluna",
+			"args": "",
+			"security_definer": true,
+			"md5": "cdc562c717731676b7fdab67dc6a0d51",
+			"execute_anon": true,
+			"execute_authenticated": true
+		},
+		{
+			"nome": "crm_touch_updated_at",
+			"args": "",
+			"security_definer": false,
+			"md5": "532bdc1a3a52590dc00980649c4639f9",
+			"execute_anon": true,
+			"execute_authenticated": true
+		},
+		{
+			"nome": "is_admin",
+			"args": "_user_id uuid",
+			"security_definer": true,
+			"md5": "63dc84d76aab97bf39c50ba8ec481385",
+			"execute_anon": true,
+			"execute_authenticated": true
+		},
+		{
+			"nome": "partner_pode",
+			"args": "_partner_id uuid, _permissao text",
+			"security_definer": true,
+			"md5": "c8dd16ae11b608d8024f4035a2545f65",
+			"execute_anon": true,
+			"execute_authenticated": true
+		}
+	],
+	"gatilhos": [
+		{
+			"tabela": "auth.users",
+			"nome": "trg_criar_profile_do_usuario",
+			"quando": "AFTER",
+			"evento": "INSERT"
+		},
+		{
+			"tabela": "public.bot_conexoes",
+			"nome": "trg_bot_conexoes_touch",
+			"quando": "BEFORE",
+			"evento": "UPDATE"
+		},
+		{
+			"tabela": "public.bot_conversas",
+			"nome": "trg_bot_conversas_touch",
+			"quando": "BEFORE",
+			"evento": "UPDATE"
+		},
+		{
+			"tabela": "public.bot_disparos",
+			"nome": "trg_bot_disparos_touch",
+			"quando": "BEFORE",
+			"evento": "UPDATE"
+		},
+		{
+			"tabela": "public.bot_fluxos",
+			"nome": "trg_bot_fluxos_touch",
+			"quando": "BEFORE",
+			"evento": "UPDATE"
+		},
+		{
+			"tabela": "public.bot_mensagens",
+			"nome": "trg_bot_mensagens_relogio",
+			"quando": "AFTER",
+			"evento": "INSERT"
+		},
+		{
+			"tabela": "public.bot_passos",
+			"nome": "trg_bot_passos_touch",
+			"quando": "BEFORE",
+			"evento": "UPDATE"
+		},
+		{
+			"tabela": "public.crm_cartoes",
+			"nome": "trg_crm_cartoes_mudanca_coluna",
+			"quando": "AFTER",
+			"evento": "UPDATE"
+		},
+		{
+			"tabela": "public.crm_cartoes",
+			"nome": "trg_crm_cartoes_touch",
+			"quando": "BEFORE",
+			"evento": "UPDATE"
+		},
+		{
+			"tabela": "public.crm_colunas",
+			"nome": "trg_crm_colunas_touch",
+			"quando": "BEFORE",
+			"evento": "UPDATE"
+		},
+		{
+			"tabela": "public.crm_quadros",
+			"nome": "trg_crm_quadros_touch",
+			"quando": "BEFORE",
+			"evento": "UPDATE"
+		}
+	],
+	"grants_bot_conexoes_webhook_segredo": {
+		"anon": true,
+		"authenticated": true
+	},
+	"contagens": {
+		"auth_users": 0,
+		"profiles": 3,
+		"profiles_sem_user_id": 3,
+		"partners": 1,
+		"partner_members": 1,
+		"bot_conexoes": 0,
+		"bot_conversas": 0,
+		"bot_mensagens": 0,
+		"crm_quadros": 1,
+		"crm_cartoes": 0
+	},
+	"storage_buckets": "",
+	"cron_jobs": null
+}

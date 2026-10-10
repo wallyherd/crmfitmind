@@ -1,13 +1,12 @@
 import React, { useState } from "react";
 import { Conexao, Fluxo, Passo, Opcao, Partner } from "@/types";
-import { supabase } from "@/lib/supabase";
+import { supabase, exigirLinhas } from "@/lib/supabase";
+import { CredenciaisConector } from "@/components/CredenciaisConector";
 import {
   Bot,
   Smartphone,
   Plus,
   Trash2,
-  Copy,
-  Check,
   Play,
   Pause,
   AlertTriangle,
@@ -38,7 +37,6 @@ export const RoboView: React.FC<RoboViewProps> = ({
   onRefresh,
 }) => {
   const [abaAtiva, setAbaAtiva] = useState<"conexoes" | "fluxos">("conexoes");
-  const [copiadoId, setCopiadoId] = useState<string | null>(null);
 
   // Modal Nova Conexão
   const [modalNovaConexao, setModalNovaConexao] = useState(false);
@@ -58,13 +56,6 @@ export const RoboView: React.FC<RoboViewProps> = ({
   const [passoTipo, setPassoTipo] = useState<"mensagem" | "pergunta" | "transferir" | "encerrar">("pergunta");
   const [passoConteudo, setPassoConteudo] = useState("");
 
-  const copiarSegredo = (segredo: string, id: string) => {
-    navigator.clipboard.writeText(segredo);
-    setCopiadoId(id);
-    toast.success("Segredo do conector copiado!");
-    setTimeout(() => setCopiadoId(null), 2000);
-  };
-
   const criarConexao = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!partner || !nomeConexao.trim()) return;
@@ -79,7 +70,7 @@ export const RoboView: React.FC<RoboViewProps> = ({
       });
 
       if (error) throw error;
-      toast.success("Conexão criada! Copie o segredo para o conector.");
+      toast.success("Conexão criada! Use \"Mostrar credenciais do conector\" para configurá-lo.");
       setNomeConexao("");
       setModalNovaConexao(false);
       onRefresh();
@@ -90,11 +81,9 @@ export const RoboView: React.FC<RoboViewProps> = ({
 
   const alternarStatusFluxo = async (fluxo: Fluxo) => {
     try {
-      const { error } = await supabase
-        .from("bot_fluxos")
-        .update({ ativo: !fluxo.ativo })
-        .eq("id", fluxo.id);
-      if (error) throw error;
+      exigirLinhas(
+        await supabase.from("bot_fluxos").update({ ativo: !fluxo.ativo }).eq("id", fluxo.id).select("id")
+      );
       toast.success(fluxo.ativo ? "Fluxo desativado" : "Fluxo ativado");
       onRefresh();
     } catch (err: any) {
@@ -153,10 +142,13 @@ export const RoboView: React.FC<RoboViewProps> = ({
 
       // Se o fluxo ainda não tinha passo inicial, define este como o inicial
       if (!fluxoSelecionado.passo_inicial_id && passoCriado) {
-        await supabase
-          .from("bot_fluxos")
-          .update({ passo_inicial_id: passoCriado.id })
-          .eq("id", fluxoSelecionado.id);
+        exigirLinhas(
+          await supabase
+            .from("bot_fluxos")
+            .update({ passo_inicial_id: passoCriado.id })
+            .eq("id", fluxoSelecionado.id)
+            .select("id")
+        );
       }
 
       toast.success("Passo adicionado ao fluxo!");
@@ -266,32 +258,8 @@ export const RoboView: React.FC<RoboViewProps> = ({
                     </div>
                   </div>
 
-                  {/* Credentials / Secret for Connector */}
-                  <div className="space-y-1.5">
-                    <label className="text-[11px] font-semibold text-slate-400 flex items-center justify-between">
-                      <span>Segredo do Conector</span>
-                      <span className="text-[10px] text-slate-500">Copiar para o conector</span>
-                    </label>
-                    <div className="flex items-center gap-2 bg-black/40 border border-white/10 rounded-xl px-3 py-2">
-                      <code className="text-xs text-red-400 font-mono truncate flex-1 select-all">
-                        {conexao.webhook_segredo}
-                      </code>
-                      <button
-                        onClick={() => copiarSegredo(conexao.webhook_segredo, conexao.id)}
-                        className="p-1 hover:bg-white/10 rounded text-slate-400 hover:text-white"
-                        title="Copiar segredo"
-                      >
-                        {copiadoId === conexao.id ? (
-                          <Check className="w-4 h-4 text-red-400" />
-                        ) : (
-                          <Copy className="w-4 h-4" />
-                        )}
-                      </button>
-                    </div>
-                    <p className="text-[10px] text-slate-500">
-                      ID da Conexão: <span className="font-mono text-slate-400">{conexao.id}</span>
-                    </p>
-                  </div>
+                  {/* Credenciais do conector: buscadas só sob clique */}
+                  <CredenciaisConector conexaoId={conexao.id} compacto />
                 </div>
               );
             })}

@@ -1,0 +1,14 @@
+{
+  "name": "crm-testes",
+  "private": true,
+  "type": "module",
+  "description": "Testes de banco (PGlite) e de unidade. Não entra no build do app.",
+  "scripts": {
+    "test": "npm run banco && npm run servidor",
+    "banco": "node --test \"banco/*.test.mjs\"",
+    "servidor": "node --import tsx --test \"servidor/*.test.ts\" \"servidor/*.test.mjs\""
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.3.0"
+  }
+}

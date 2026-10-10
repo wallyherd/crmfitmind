@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Partner } from "@/types";
-import { supabase } from "@/lib/supabase";
+import { apiJson } from "@/lib/api";
 import {
   Building2,
   Plus,
@@ -23,8 +23,17 @@ export const AdminView: React.FC<AdminViewProps> = ({ partners, onRefresh }) => 
   const [nomeEmpresa, setNomeEmpresa] = useState("");
   const [cidade, setCidade] = useState("");
   const [estado, setEstado] = useState("");
-  const [ramo, setRamo] = useState("");
   const [salvando, setSalvando] = useState(false);
+  const [donoId, setDonoId] = useState("");
+  const [candidatos, setCandidatos] = useState<Array<{ user_id: string; name: string | null; email: string | null }>>([]);
+
+  // Dono possível: quem tem login e não é admin. Sem escolher, o primeiro usuário ligado à empresa vira o dono.
+  useEffect(() => {
+    if (!modalNovaEmpresa) return;
+    apiJson("/api/admin/usuarios")
+      .then((r: any) => setCandidatos((r?.usuarios || []).filter((u: any) => u.user_id && u.role !== "admin")))
+      .catch(() => setCandidatos([]));
+  }, [modalNovaEmpresa]);
 
   const criarEmpresaCompleta = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,24 +41,22 @@ export const AdminView: React.FC<AdminViewProps> = ({ partners, onRefresh }) => 
 
     setSalvando(true);
     try {
-      const res = await fetch("/api/setup/empresa", {
+      // O dono é o mentorado escolhido aqui; o admin nunca é dono da empresa que cria.
+      await apiJson("/api/setup/empresa", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           nome: nomeEmpresa.trim(),
-          cidade: cidade.trim() || "São Paulo",
-          estado: estado.trim() || "SP",
+          cidade: cidade.trim() || "Cuiabá",
+          estado: estado.trim() || "MT",
+          userId: donoId || undefined,
         }),
       });
-
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.erro || "Erro ao criar empresa");
 
       toast.success(`Empresa "${nomeEmpresa}" criada com Funil e Robô automáticos!`);
       setNomeEmpresa("");
       setCidade("");
       setEstado("");
-      setRamo("");
+      setDonoId("");
       setModalNovaEmpresa(false);
       onRefresh();
     } catch (err: any) {
@@ -142,12 +149,29 @@ export const AdminView: React.FC<AdminViewProps> = ({ partners, onRefresh }) => 
                 />
               </div>
 
+              <div>
+                <label className="block text-xs font-semibold text-slate-400 mb-1">Dono (o mentorado)</label>
+                <select
+                  value={donoId}
+                  onChange={(e) => setDonoId(e.target.value)}
+                  className="w-full rounded-xl bg-slate-900 border border-white/10 px-3 py-2 text-xs text-white focus:outline-none focus:border-red-500"
+                >
+                  <option value="">Definir depois: o primeiro usuário ligado à empresa vira o dono</option>
+                  {candidatos.map((u) => (
+                    <option key={u.user_id} value={u.user_id}>
+                      {u.name || u.email}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-[10px] text-slate-500 mt-1">Você, como mentor, não fica como dono: o conteúdo é do mentorado.</p>
+              </div>
+
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-slate-400 mb-1">Cidade</label>
                   <input
                     type="text"
-                    placeholder="São Paulo"
+                    placeholder="Cuiabá"
                     value={cidade}
                     onChange={(e) => setCidade(e.target.value)}
                     className="w-full rounded-xl bg-slate-900 border border-white/10 px-3 py-2 text-xs text-white focus:outline-none focus:border-red-500"
@@ -157,7 +181,7 @@ export const AdminView: React.FC<AdminViewProps> = ({ partners, onRefresh }) => 
                   <label className="block text-xs font-semibold text-slate-400 mb-1">Estado</label>
                   <input
                     type="text"
-                    placeholder="SP"
+                    placeholder="MT"
                     value={estado}
                     onChange={(e) => setEstado(e.target.value)}
                     className="w-full rounded-xl bg-slate-900 border border-white/10 px-3 py-2 text-xs text-white focus:outline-none focus:border-red-500"

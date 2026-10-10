@@ -1,0 +1,40 @@
+HERNAN — ATUALIZAÇÃO DO BANCO DO CRM (Supabase wpoyoiqiybzlwkqryuvw) — VERSÃO 2 (09/10, noite)
+
+ESTA VERSÃO SUBSTITUI A PRIMEIRA. Muda em relação à v1:
+  - nova atualização migracoes/006-comprovantes.sql (guarda privada dos comprovantes que os clientes mandam);
+  - APLICAR-NO-AR.md atualizado (agora são 001 a 006) e a conferência do passo 4 cobre a 006;
+  - agendamentos.sql corrigido (a versão anterior tinha erro de sintaxe; só é usado no Passo 8, depois);
+  - as atualizações 001 a 005 são IGUAIS às da v1.
+
+SE VOCÊ JÁ RODOU A V1 (001 a 005): rode só a 006 e depois o Passo 4 (conferência). Se tinha
+parado no meio, continue de onde parou usando os arquivos desta v2.
+SE AINDA NÃO RODOU NADA: siga o APLICAR-NO-AR.md desta v2, do Passo 1 ao Passo 6.
+
+O que é: o código novo do CRM (segurança, captura do WhatsApp, IA, vendas, visão do mentor,
+comprovantes) precisa dessas atualizações no banco. O banco no ar está praticamente vazio
+(diagnóstico de 09/10): nenhum usuário de login, 3 perfis-semente e 1 empresa-semente. Nenhum dado
+de cliente é perdido.
+
+COMO FAZER:
+  - Rode os arquivos no SQL Editor do Supabase, um por aba, na ordem do roteiro.
+  - Cada atualização roda dentro de uma transação: se der erro, nada é gravado.
+  - Rodar de novo não estraga nada (o roteiro explica a única exceção).
+
+NÃO FAZER AINDA:
+  - Passo 7 (publicar na Vercel) e Passo 8 (agendamentos). Vamos testar no PC do Erick antes.
+  - Não rode banco-instalar-completo.sql nem nenhum SQL antigo: o banco já existe.
+  - Não rode nada da pasta demo-SO-O-ERICK: ela é do Erick, para o teste, depois que ele criar um
+    mentorado de teste pela tela.
+
+PASSO 6 (usuário admin): crie o usuário com o e-mail que o Erick passar. Se quiser, crie um para
+você também; os dois podem ser admin.
+
+O QUE MANDAR DE VOLTA PARA O ERICK:
+  1. Se o Passo 1 mostrar contagens diferentes das do roteiro, PARE e mande o resultado.
+  2. Qualquer mensagem de erro, com o número do passo.
+  3. As chaves do projeto, para o teste local (Project Settings > API Keys):
+     - a pública (anon ou sb_publishable_);
+     - a secreta (service_role ou sb_secret_).
+     A SECRETA dá acesso total ao banco: mande por canal privado, nunca em grupo. Melhor ainda:
+     convide o Erick como membro do projeto no Supabase (Organization > Team > Invite), e ele copia
+     sozinho.

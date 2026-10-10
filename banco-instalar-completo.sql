@@ -1,5 +1,17 @@
+-- ============================================================
+-- Instalacao do CRM num projeto Supabase NOVO (vazio).
+-- Ordem: este arquivo, banco-retroalimentacao.sql e depois os arquivos
+-- de banco/migracoes/ em ordem. Banco que ja existe: ver banco/LEIA-ME.md.
+--
+-- Requer um projeto Supabase: usa auth.users, auth.uid() e os papeis
+-- anon, authenticated e service_role.
+-- ============================================================
 SET check_function_bodies = off;
 
+-- ------------------------------------------------ usuarios
+-- Uma linha por usuario do Supabase Auth. O robo e o CRM gravam
+-- profiles.id (nao auth.users.id) em criado_por, responsavel_id etc.
+-- Senha nao fica aqui: so no Supabase Auth.
 CREATE TABLE IF NOT EXISTS public.profiles (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id uuid UNIQUE REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -7,9 +19,14 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   email text,
   phone text,
   role text NOT NULL DEFAULT 'user' CHECK (role IN ('user', 'admin')),
+  status text NOT NULL DEFAULT 'ativo' CONSTRAINT profiles_status_check CHECK (status IN ('ativo', 'suspenso', 'expirado')),
+  expira_em timestamptz,
   created_at timestamptz NOT NULL DEFAULT now()
 );
+-- profiles.partner_id entra depois de partners (logo abaixo).
 
+-- Todo usuario novo do Auth ganha o seu profile na hora, SUSPENSO: quem
+-- libera o acesso e o admin (POST /api/admin/usuarios ja cria ativo).
 CREATE OR REPLACE FUNCTION public.criar_profile_do_usuario()
  RETURNS trigger
  LANGUAGE plpgsql
@@ -17,42 +34,13 @@ CREATE OR REPLACE FUNCTION public.criar_profile_do_usuario()
  SET search_path TO 'public'
 AS $function$
 BEGIN
-  INSERT INTO public.profiles (user_id, email, name)
-  VALUES (NEW.id, NEW.email, NEW.raw_user_meta_data->>'name')
+  INSERT INTO public.profiles (user_id, email, name, status)
+  VALUES (NEW.id, NEW.email, NEW.raw_user_meta_data->>'name', 'suspenso')
   ON CONFLICT (user_id) DO NOTHING;
   RETURN NEW;
 END; $function$;
 
--- ============================================================
--- Dependencias minimas para instalar o robo + CRM FORA do FitMind.
---
--- 01-robo-crm.sql chama coisas que no FitMind ja existiam. Aqui estao
--- as versoes minimas delas, com os MESMOS nomes e assinaturas, para que
--- 01-robo-crm.sql entre sem nenhuma edicao.
---
--- Requer um projeto Supabase: usa auth.users, auth.uid() e o papel
--- "authenticated". Nao rode isto dentro do banco do FitMind -- la estas
--- tabelas ja existem, maiores.
--- ============================================================
-
--- ------------------------------------------------ usuarios
--- Uma linha por usuario do Supabase Auth. O robo e o CRM gravam
--- profiles.id (nao auth.users.id) em criado_por, responsavel_id etc.
-
--- Todo usuario novo ganha o seu profile na hora do cadastro.
-CREATE OR REPLACE FUNCTION public.criar_profile_do_usuario()
- RETURNS trigger
- LANGUAGE plpgsql
- SECURITY DEFINER
- SET search_path TO 'public'
-AS $function$
-BEGIN
-  INSERT INTO public.profiles (user_id, email, name)
-  VALUES (NEW.id, NEW.email, NEW.raw_user_meta_data->>'name')
-  ON CONFLICT (user_id) DO NOTHING;
-  RETURN NEW;
-END; $function$;
-
+DROP TRIGGER IF EXISTS trg_criar_profile_do_usuario ON auth.users;
 CREATE TRIGGER trg_criar_profile_do_usuario
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.criar_profile_do_usuario();
@@ -71,6 +59,11 @@ CREATE TABLE public.partners (
   created_at timestamptz NOT NULL DEFAULT now()
 );
 
+-- Empresa principal do usuario (quem cadastra e o admin). O acesso de
+-- verdade vem de partner_members.
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS partner_id uuid
+  CONSTRAINT profiles_partner_id_fkey REFERENCES public.partners(id) ON DELETE SET NULL;
+
 -- Quem trabalha em cada empresa. partner_pode() so enxerga esta tabela:
 -- o DONO tambem precisa de uma linha aqui, com papel = 'owner'.
 -- Para os membros, permissoes lista os modulos liberados: 'robo', 'crm'.
@@ -87,7 +80,7 @@ CREATE TABLE public.partner_members (
 -- e o grupo de empresas que dividem o mesmo numero de WhatsApp.
 CREATE TABLE public.partner_acesso_config (
   partner_id uuid PRIMARY KEY REFERENCES public.partners(id) ON DELETE CASCADE,
-  timezone text NOT NULL DEFAULT 'America/Sao_Paulo',
+  timezone text NOT NULL DEFAULT 'America/Cuiaba',
   grupo_id uuid
 );
 
@@ -105,9 +98,11 @@ CREATE OR REPLACE FUNCTION public.is_admin(_user_id uuid)
  STABLE SECURITY DEFINER
  SET search_path TO 'public'
 AS $function$
-  SELECT EXISTS (SELECT 1 FROM public.profiles WHERE user_id = _user_id AND role = 'admin')
+  SELECT EXISTS (SELECT 1 FROM public.profiles WHERE user_id = _user_id AND role = 'admin' AND status = 'ativo')
 $function$;
 
+-- Conta suspensa ou com acesso vencido nao enxerga a empresa (o servidor
+-- devolve 403 pelo mesmo motivo; aqui vale para o acesso direto ao banco).
 CREATE OR REPLACE FUNCTION public.partner_pode(_partner_id uuid, _permissao text)
  RETURNS boolean
  LANGUAGE sql
@@ -118,6 +113,7 @@ AS $function$
     SELECT true FROM public.partner_members m
     JOIN public.profiles pr ON pr.id = m.profile_id
     WHERE m.partner_id = _partner_id AND pr.user_id = auth.uid()
+      AND pr.status = 'ativo' AND (pr.expira_em IS NULL OR pr.expira_em > now())
       AND (m.papel = 'owner' OR _permissao = ANY(m.permissoes))
     LIMIT 1
   ), false) OR COALESCE(public.is_admin(auth.uid()), false)
@@ -161,7 +157,7 @@ CREATE POLICY "Ver empresas onde trabalho" ON public.partners
 
 -- ---------------------------------------------------- 1. TABELAS
 -- Dependem de public.profiles (e crm_cartoes de public.leads),
--- que NAO estao aqui: ver banco/LEIA-ME.md.
+-- criadas no inicio deste arquivo.
 
 CREATE TABLE public.bot_conexoes (
   id uuid DEFAULT gen_random_uuid() NOT NULL,
@@ -654,7 +650,7 @@ AS $function$
            (SELECT cfg.timezone FROM public.partner_acesso_config cfg
              JOIN public.bot_conexoes c ON c.owner_id = cfg.partner_id
             WHERE c.id = _conexao_id),
-           'America/Sao_Paulo'))::date;
+           'America/Cuiaba'))::date;
 $function$
 ;
 
@@ -1009,7 +1005,10 @@ ALTER TABLE public.conector_versoes ADD CONSTRAINT conector_versoes_versao_key U
 -- servidor) le. O navegador nao tem o que fazer aqui.
 ALTER TABLE public.conector_versoes ENABLE ROW LEVEL SECURITY;
 
-
+-- Cria empresa completa (funil, fluxo de boas-vindas). So o servidor chama
+-- (service role, rota de admin); o EXECUTE e revogado de anon/authenticated.
+-- O dono e o profile do usuario _user_id; sem usuario, nasce um profile
+-- sem login, sempre com papel 'user'.
 CREATE OR REPLACE FUNCTION public.bootstrap_empresa_completa(
   _user_id uuid DEFAULT NULL,
   _empresa_nome text DEFAULT 'Minha Empresa',
@@ -1020,7 +1019,7 @@ RETURNS jsonb
 LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path TO 'public'
-AS $
+AS $function$
 DECLARE
   v_profile_id uuid;
   v_partner_id uuid;
@@ -1029,16 +1028,16 @@ DECLARE
   v_passo_ini_id uuid;
   v_passo_atendente_id uuid;
 BEGIN
-  IF _user_id IS NOT NULL AND _user_id <> '00000000-0000-0000-0000-000000000000'::uuid AND EXISTS (SELECT 1 FROM auth.users WHERE id = _user_id) THEN
+  IF _user_id IS NOT NULL AND EXISTS (SELECT 1 FROM auth.users WHERE id = _user_id) THEN
     SELECT id INTO v_profile_id FROM public.profiles WHERE user_id = _user_id;
     IF v_profile_id IS NULL THEN
       INSERT INTO public.profiles (user_id, name, role)
-      VALUES (_user_id, _empresa_nome, 'admin')
+      VALUES (_user_id, _empresa_nome, 'user')
       RETURNING id INTO v_profile_id;
     END IF;
   ELSE
     INSERT INTO public.profiles (name, role)
-    VALUES (_empresa_nome, 'admin')
+    VALUES (_empresa_nome, 'user')
     RETURNING id INTO v_profile_id;
   END IF;
 
@@ -1051,10 +1050,21 @@ BEGIN
   ON CONFLICT (partner_id, profile_id) DO UPDATE SET papel = 'owner', permissoes = ARRAY['robo', 'crm'];
 
   INSERT INTO public.partner_acesso_config (partner_id, timezone)
-  VALUES (v_partner_id, 'America/Sao_Paulo')
+  VALUES (v_partner_id, 'America/Cuiaba')
   ON CONFLICT (partner_id) DO NOTHING;
 
-  v_quadro_id := public.crm_criar_quadro('parceiro', v_partner_id, 'Funil de Vendas', 'funil');
+  -- Funil criado aqui e nao por crm_criar_quadro(): aquela checa auth.uid(),
+  -- que e nulo quando quem chama e o servidor.
+  INSERT INTO public.crm_quadros (escopo, owner_id, nome, tipo, criado_por)
+  VALUES ('parceiro', v_partner_id, 'Funil de Vendas', 'funil', v_profile_id)
+  RETURNING id INTO v_quadro_id;
+
+  INSERT INTO public.crm_colunas (quadro_id, nome, posicao, tipo)
+  SELECT v_quadro_id, e.nome, e.ordem * 1000, e.tipo
+  FROM unnest(
+    ARRAY['Novo contato', 'Em conversa', 'Proposta enviada', 'Negociando', 'Venda fechada', 'Perdido'],
+    ARRAY['normal', 'normal', 'normal', 'normal', 'ganho', 'perdido']
+  ) WITH ORDINALITY AS e(nome, tipo, ordem);
 
   INSERT INTO public.bot_fluxos (escopo, owner_id, nome, ativo, gatilho_tipo)
   VALUES ('parceiro', v_partner_id, 'Atendimento Geral', true, 'primeira_mensagem')
@@ -1065,7 +1075,9 @@ BEGIN
   RETURNING id INTO v_passo_atendente_id;
 
   INSERT INTO public.bot_passos (fluxo_id, chave, tipo, conteudo, posicao)
-  VALUES (v_fluxo_id, 'inicio', 'pergunta', 'Olá! Seja bem-vindo(a) à ' || _empresa_nome || '! 👋\nComo podemos te ajudar hoje?\n\n1 - Conhecer nossos produtos/serviços\n2 - Falar com atendente humano\n3 - Horários de funcionamento', 1)
+  VALUES (v_fluxo_id, 'inicio', 'pergunta',
+          'Olá! Seja bem-vindo(a) à ' || _empresa_nome || E'! 👋\nComo podemos te ajudar hoje?\n\n1 - Conhecer nossos produtos/serviços\n2 - Falar com atendente humano\n3 - Horários de funcionamento',
+          1)
   RETURNING id INTO v_passo_ini_id;
 
   UPDATE public.bot_fluxos SET passo_inicial_id = v_passo_ini_id WHERE id = v_fluxo_id;
@@ -1081,4 +1093,81 @@ BEGIN
     'fluxo_id', v_fluxo_id
   );
 END;
-$;
+$function$;
+
+-- ------------------------------------------------ 7. PERMISSOES
+-- >>> permissoes (bloco identico no instalador e na migracao 001; um teste confere)
+-- O navegador fala com o banco usando o JWT do usuario (papel authenticated)
+-- e a RLS escolhe as linhas. Aqui fica o que a RLS nao cobre: coluna secreta,
+-- escrita em tabela de cadastro e funcao que age sem checar quem chama.
+DO $permissoes$
+DECLARE
+  t text;
+  f record;
+  v_cols text;
+  tabelas_crm text[] := ARRAY[
+    'profiles', 'partners', 'partner_members', 'partner_acesso_config', 'leads',
+    'bot_conexoes', 'bot_conversas', 'bot_disparo_alvos', 'bot_disparos', 'bot_fluxos',
+    'bot_mensagens', 'bot_opcoes', 'bot_passos', 'bot_verificacoes', 'crm_atividades',
+    'crm_cartao_etiquetas', 'crm_cartoes', 'crm_colunas', 'crm_etiquetas', 'crm_quadros',
+    'conector_versoes'];
+  -- cadastro e acesso: so o servidor (service role) grava
+  tabelas_cadastro text[] := ARRAY['profiles', 'partners', 'partner_members', 'partner_acesso_config', 'leads'];
+  -- so o servidor le e grava
+  tabelas_servidor text[] := ARRAY['bot_verificacoes', 'conector_versoes'];
+  funcoes_crm text[] := ARRAY[
+    'academia_parceiros_do_grupo', 'bootstrap_empresa_completa', 'bot_acesso_conexao', 'bot_acesso_dono',
+    'bot_acesso_fluxo', 'bot_bloquear_conexao', 'bot_clonar_fluxo', 'bot_confirmar_verificacao',
+    'bot_contar_envio', 'bot_dia_da_conexao', 'bot_escolher_conexao', 'bot_marcar_ultima_mensagem',
+    'bot_registrar_no_cartao', 'bot_vincular_cartao', 'criar_profile_do_usuario', 'crm_acesso_quadro',
+    'crm_clonar_quadro', 'crm_criar_quadro', 'crm_importar_contatos', 'crm_registrar_mudanca_coluna',
+    'crm_touch_updated_at', 'is_admin', 'partner_pode'];
+  -- usadas dentro das policies (precisam de EXECUTE para o authenticated) ou
+  -- que conferem auth.uid() por dentro antes de agir
+  funcoes_usuario text[] := ARRAY[
+    'is_admin', 'partner_pode', 'bot_acesso_dono', 'bot_acesso_conexao', 'bot_acesso_fluxo',
+    'crm_acesso_quadro', 'bot_clonar_fluxo', 'crm_clonar_quadro', 'crm_criar_quadro', 'crm_importar_contatos'];
+BEGIN
+  FOREACH t IN ARRAY tabelas_crm LOOP
+    CONTINUE WHEN to_regclass('public.' || t) IS NULL;
+    -- anon (sem login) nao le nem grava nada do CRM
+    EXECUTE format('REVOKE ALL ON public.%I FROM anon', t);
+    -- TRUNCATE passa por cima da RLS
+    EXECUTE format('REVOKE TRUNCATE, REFERENCES, TRIGGER ON public.%I FROM authenticated', t);
+    IF t = ANY (tabelas_cadastro) THEN
+      EXECUTE format('REVOKE INSERT, UPDATE, DELETE ON public.%I FROM authenticated', t);
+    END IF;
+    IF t = ANY (tabelas_servidor) THEN
+      EXECUTE format('REVOKE ALL ON public.%I FROM authenticated', t);
+    END IF;
+    EXECUTE format('GRANT ALL ON public.%I TO service_role', t);
+  END LOOP;
+
+  -- bot_conexoes: o usuario le todas as colunas menos o segredo do conector.
+  -- Coluna nova so aparece para o navegador depois de rodar este bloco de novo.
+  SELECT string_agg(quote_ident(attname), ', ') INTO v_cols
+    FROM pg_attribute WHERE attrelid = 'public.bot_conexoes'::regclass AND attnum > 0 AND NOT attisdropped;
+  EXECUTE 'REVOKE SELECT ON public.bot_conexoes FROM anon, authenticated';
+  EXECUTE format('REVOKE SELECT (%s) ON public.bot_conexoes FROM anon, authenticated', v_cols);
+  SELECT string_agg(quote_ident(attname), ', ' ORDER BY attnum) INTO v_cols
+    FROM pg_attribute WHERE attrelid = 'public.bot_conexoes'::regclass AND attnum > 0 AND NOT attisdropped
+     AND attname NOT IN ('webhook_segredo', 'vinculo_hash');
+  EXECUTE format('GRANT SELECT (%s) ON public.bot_conexoes TO authenticated', v_cols);
+
+  -- Funcoes: em todas as sobrecargas. As de acao (criar empresa, vincular
+  -- cartao, bloquear conexao, contar envio...) nao checam quem chama: so o
+  -- servidor executa.
+  FOR f IN
+    SELECT p.oid::regprocedure AS assinatura, p.proname
+      FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
+     WHERE n.nspname = 'public' AND p.proname = ANY (funcoes_crm)
+  LOOP
+    EXECUTE format('REVOKE ALL ON FUNCTION %s FROM PUBLIC, anon, authenticated', f.assinatura);
+    EXECUTE format('GRANT EXECUTE ON FUNCTION %s TO service_role', f.assinatura);
+    IF f.proname = ANY (funcoes_usuario) THEN
+      EXECUTE format('GRANT EXECUTE ON FUNCTION %s TO authenticated', f.assinatura);
+    END IF;
+  END LOOP;
+END
+$permissoes$;
+-- <<< permissoes

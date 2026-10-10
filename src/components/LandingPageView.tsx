@@ -16,7 +16,8 @@ interface LandingPageViewProps {
   onGoToLogin: () => void;
 }
 
-const WHATSAPP_NUMBER = "5565996221282";
+// Contato comercial público (também usado no login para cadastro e renovação).
+export const WHATSAPP_NUMBER = "5565996221282";
 const WHATSAPP_URL = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(
   "Olá! Vim pelo site do FitMind CRM & Robô WhatsApp e quero saber mais sobre os planos e contratação."
 )}`;
@@ -30,7 +31,7 @@ export const LandingPageView: React.FC<LandingPageViewProps> = ({ onGoToLogin })
       {/* Header / Navbar */}
       <header className="sticky top-0 z-50 backdrop-blur-xl bg-black/85 border-b border-white/10 px-6 lg:px-16 py-3.5 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <img src="/logo.png" alt="FitMind" className="h-9 w-auto object-contain" />
+          <img src="/marca/logo-escura-recorte.png" alt="FitMind" className="h-12 w-auto object-contain" />
           <span className="text-red-400 font-bold text-xs px-2.5 py-0.5 rounded-full bg-red-500/15 border border-red-500/30">
             CRM & Bot
           </span>

@@ -1,131 +1,46 @@
-const DEFAULT_SUPABASE_URL = "https://wpoyoiqiybzlwkqryuvw.supabase.co";
-const DEFAULT_SUPABASE_KEY = "";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
-// Configuração persistida ou variáveis de ambiente
-export const getStoredConfig = () => {
-  try {
-    const url =
-      localStorage.getItem("crm_supabase_url") ||
-      import.meta.env.VITE_SUPABASE_URL ||
-      DEFAULT_SUPABASE_URL;
-    const key =
-      localStorage.getItem("crm_supabase_anon_key") ||
-      import.meta.env.VITE_SUPABASE_ANON_KEY ||
-      DEFAULT_SUPABASE_KEY;
-    return { url, key };
-  } catch {
-    return {
-      url: import.meta.env.VITE_SUPABASE_URL || DEFAULT_SUPABASE_URL,
-      key: import.meta.env.VITE_SUPABASE_ANON_KEY || DEFAULT_SUPABASE_KEY,
-    };
-  }
-};
+const url = (import.meta.env.VITE_SUPABASE_URL || "").trim();
+const chaveAnon = (import.meta.env.VITE_SUPABASE_ANON_KEY || "").trim();
 
-export function createRestClient(baseUrl: string, apiKey: string) {
-  return {
-    from(table: string) {
-      const state = {
-        table,
-        method: "GET",
-        params: new URLSearchParams(),
-        body: null as string | null,
-        isSingle: false,
-        headers: {
-          apikey: apiKey,
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-          Prefer: "return=representation",
-        } as Record<string, string>,
-      };
+export const supabaseConfigurado = Boolean(url && chaveAnon);
 
-      const builder = {
-        select(cols = "*") {
-          state.params.set("select", cols);
-          return builder;
-        },
-        eq(col: string, val: any) {
-          state.params.set(col, `eq.${val}`);
-          return builder;
-        },
-        order(col: string, { ascending = true }: { ascending?: boolean } = {}) {
-          state.params.set("order", `${col}.${ascending ? "asc" : "desc"}`);
-          return builder;
-        },
-        maybeSingle() {
-          state.isSingle = true;
-          state.headers["Accept"] = "application/vnd.pgrst.object+json";
-          return builder;
-        },
-        single() {
-          state.isSingle = true;
-          state.headers["Accept"] = "application/vnd.pgrst.object+json";
-          return builder;
-        },
-        insert(data: any) {
-          state.method = "POST";
-          state.body = JSON.stringify(data);
-          return builder;
-        },
-        update(data: any) {
-          state.method = "PATCH";
-          state.body = JSON.stringify(data);
-          return builder;
-        },
-        delete() {
-          state.method = "DELETE";
-          return builder;
-        },
-        async then(resolve: (res: { data: any; error: any }) => void) {
-          try {
-            const query = state.params.toString();
-            const endpoint = `${baseUrl}/rest/v1/${state.table}${query ? `?${query}` : ""}`;
-            const res = await fetch(endpoint, {
-              method: state.method,
-              headers: state.headers,
-              body: state.body,
-            });
+// Só a URL pública do projeto; a chave anon nunca é exibida na tela.
+export const supabaseUrlPublica = url;
 
-            if (!res.ok) {
-              const err = await res.json().catch(() => ({ message: res.statusText }));
-              return resolve({ data: null, error: err });
-            }
+// Lido antes do createClient: o supabase-js limpa o hash da URL ao consumir o link de recuperação.
+const hashInicial = typeof window !== "undefined" ? window.location.hash.replace(/^#/, "") : "";
+const paramsHash = new URLSearchParams(hashInicial);
 
-            if (res.status === 204) {
-              return resolve({ data: null, error: null });
-            }
+export const chegouPorLinkDeRecuperacao = paramsHash.get("type") === "recovery";
 
-            const data = await res.json().catch(() => null);
-            return resolve({ data, error: null });
-          } catch (err: any) {
-            return resolve({ data: null, error: err });
-          }
-        },
-      };
+// Link de e-mail vencido ou já usado volta com #error=...; o App avisa em vez de ignorar.
+export const linkDeAuthInvalido = Boolean(paramsHash.get("error") || paramsHash.get("error_code"));
 
-      return builder;
+function clienteAusente(): SupabaseClient {
+  return new Proxy({} as SupabaseClient, {
+    get() {
+      throw new Error(
+        "Supabase não configurado: defina VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY no build."
+      );
     },
-    auth: {
-      persistSession: true,
-      async signOut() {
-        localStorage.removeItem("crm_auth_user");
-      },
-      async getSession() {
-        const user = localStorage.getItem("crm_auth_user");
-        return { data: { session: user ? { user: JSON.parse(user) } : null } };
-      },
-      onAuthStateChange(cb: any) {
-        return { data: { subscription: { unsubscribe: () => {} } } };
-      },
-    },
-  };
+  });
 }
 
-const config = getStoredConfig();
+/**
+ * RLS que nega UPDATE/DELETE não devolve erro, só não altera nada.
+ * Use com `.select("id")` no fim da query para confirmar que alguma linha mudou.
+ */
+export function exigirLinhas<T>(res: { data: T[] | null; error: { message: string } | null }): T[] {
+  if (res.error) throw new Error(res.error.message);
+  if (!res.data || res.data.length === 0) {
+    throw new Error("Nada foi alterado: registro não encontrado ou sem permissão.");
+  }
+  return res.data;
+}
 
-export const supabase = createRestClient(config.url, config.key) as any;
-
-export const updateSupabaseConfig = (url: string, key: string) => {
-  localStorage.setItem("crm_supabase_url", url);
-  localStorage.setItem("crm_supabase_anon_key", key);
-  window.location.reload();
-};
+export const supabase: SupabaseClient = supabaseConfigurado
+  ? createClient(url, chaveAnon, {
+      auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
+    })
+  : clienteAusente();

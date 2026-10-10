@@ -1,0 +1,137 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://crm-fitmind-whatsapp.vercel.app/contrato/analise-diaria-v1.json",
+  "title": "Analise diaria de conversas - contrato v1",
+  "description": "Saida do analista (qualquer motor) para UM lote = um parceiro, um dia. Sem telefone e sem nome: a conversa e identificada so por ref (c01, p03). Campos NAO_INVENTAR so podem ser preenchidos com o que esta escrito no lote; na duvida, null.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["versao_contrato", "lote_id", "partner_id", "dia", "engine", "resumo", "contatos"],
+  "properties": {
+    "versao_contrato": { "const": "1" },
+    "lote_id": { "type": "string", "format": "uuid", "description": "NAO_INVENTAR: copiar do cabecalho #@ lote_id" },
+    "partner_id": { "type": "string", "format": "uuid", "description": "NAO_INVENTAR: copiar do cabecalho #@ partner_id" },
+    "dia": { "type": "string", "format": "date", "description": "NAO_INVENTAR: copiar do cabecalho #@ dia" },
+    "engine": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tipo", "modelo"],
+      "properties": {
+        "tipo": { "enum": ["rotina_dono", "api_batch", "manual"] },
+        "modelo": { "type": ["string", "null"], "maxLength": 60 }
+      }
+    },
+    "resumo": { "$ref": "#/$defs/resumo" },
+    "contatos": { "type": "array", "maxItems": 300, "items": { "$ref": "#/$defs/contato" } }
+  },
+  "$defs": {
+    "ref_conversa": { "type": "string", "pattern": "^[cp][0-9]{1,4}$" },
+    "ref_mensagem": { "type": "string", "pattern": "^[cp][0-9]{1,4}\\.m[0-9]{1,4}$" },
+    "texto_curto": { "type": "string", "maxLength": 200 },
+    "resumo": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["diagnostico", "o_que_foi_feito", "melhor_estrategia", "pontos_melhoria", "foco_sugerido", "dicas_mensagens", "alertas"],
+      "properties": {
+        "diagnostico": { "type": "string", "maxLength": 1200 },
+        "o_que_foi_feito": { "type": "string", "maxLength": 600 },
+        "melhor_estrategia": { "type": "string", "maxLength": 600 },
+        "pontos_melhoria": { "type": "array", "maxItems": 5, "items": { "$ref": "#/$defs/texto_curto" } },
+        "foco_sugerido": {
+          "type": "array",
+          "maxItems": 5,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["tipo", "descricao", "quantidade"],
+            "properties": {
+              "tipo": { "enum": ["followups", "propostas", "vendas", "reativacoes", "novas_conversas", "outro"] },
+              "descricao": { "type": "string", "maxLength": 160 },
+              "quantidade": { "type": ["integer", "null"], "minimum": 0, "maximum": 500 }
+            }
+          }
+        },
+        "dicas_mensagens": {
+          "type": "array",
+          "maxItems": 3,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["situacao", "mensagem"],
+            "properties": {
+              "situacao": { "type": "string", "maxLength": 120 },
+              "mensagem": { "type": "string", "maxLength": 400 }
+            }
+          }
+        },
+        "alertas": { "type": "array", "maxItems": 5, "items": { "$ref": "#/$defs/texto_curto" } }
+      }
+    },
+    "contato": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ref", "categoria", "confianca", "origem", "etapa_funil", "tags", "status_comercial", "venda", "motivo_perda", "riscos", "proxima_acao", "produto_sugerido", "como_abordar", "resumo"],
+      "properties": {
+        "ref": { "$ref": "#/$defs/ref_conversa" },
+        "categoria": { "enum": ["cliente", "lead", "parceiro", "fornecedor", "pessoal", "equipe", "outro"] },
+        "confianca": { "type": "number", "minimum": 0, "maximum": 1 },
+        "origem": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["tipo", "evidencia_ref", "evidencia_trecho"],
+          "properties": {
+            "tipo": { "enum": ["trafego_pago", "organico", "indicacao", "desconhecido"] },
+            "evidencia_ref": { "anyOf": [{ "$ref": "#/$defs/ref_mensagem" }, { "type": "null" }] },
+            "evidencia_trecho": { "type": ["string", "null"], "maxLength": 200, "description": "NAO_INVENTAR: copia literal" }
+          }
+        },
+        "etapa_funil": { "enum": ["novo_contato", "em_atendimento", "proposta_enviada", "negociando", "aguardando_pagamento", "ganho", "perdido", "pos_venda", "nao_se_aplica"] },
+        "tags": { "type": "array", "maxItems": 5, "items": { "type": "string", "pattern": "^[a-z0-9_]{2,32}$" } },
+        "status_comercial": { "enum": ["venda_ganha", "perda_venda", "em_aberto", "iniciada_nao_finalizada", "sem_interesse_comercial"] },
+        "venda": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["houve", "valor", "forma", "produto", "confirmada", "tipo_evidencia", "evidencia_ref", "evidencia_trecho"],
+          "properties": {
+            "houve": { "type": "boolean" },
+            "valor": { "type": ["number", "null"], "minimum": 0, "maximum": 1000000, "description": "NAO_INVENTAR: so se o numero estiver escrito na conversa" },
+            "forma": { "enum": ["pix", "cartao", "boleto", "dinheiro", "transferencia", "link_pagamento", "outro", "desconhecida", null] },
+            "produto": { "type": ["string", "null"], "maxLength": 80 },
+            "confirmada": { "type": "boolean", "description": "Opiniao do analista; quem decide o status final e o servidor" },
+            "tipo_evidencia": { "enum": ["confirmacao_do_vendedor", "comprovante_enviado_pelo_cliente", "cliente_disse_que_pagou", "combinado_sem_pagamento", null] },
+            "evidencia_ref": { "anyOf": [{ "$ref": "#/$defs/ref_mensagem" }, { "type": "null" }] },
+            "evidencia_trecho": { "type": ["string", "null"], "maxLength": 200, "description": "NAO_INVENTAR: copia literal de um trecho continuo da mensagem citada" }
+          }
+        },
+        "motivo_perda": {
+          "anyOf": [
+            { "type": "null" },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["codigo", "detalhe"],
+              "properties": {
+                "codigo": { "enum": ["preco", "sem_resposta", "concorrente", "timing", "sem_necessidade", "confianca", "forma_pagamento", "atendimento_demorado", "outro"] },
+                "detalhe": { "type": ["string", "null"], "maxLength": 200 }
+              }
+            }
+          ]
+        },
+        "riscos": { "type": "array", "maxItems": 4, "items": { "enum": ["esperando_voce", "cliente_sumiu", "followup_atrasado", "objecao_nao_tratada", "esfriando", "promessa_nao_cumprida"] } },
+        "proxima_acao": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["tipo", "em_dias", "prioridade", "mensagem_sugerida"],
+          "properties": {
+            "tipo": { "enum": ["responder_agora", "followup", "enviar_proposta", "cobrar_pagamento", "confirmar_pagamento", "pos_venda", "reativar", "nenhuma"] },
+            "em_dias": { "type": ["integer", "null"], "minimum": 0, "maximum": 60 },
+            "prioridade": { "enum": ["alta", "media", "baixa"] },
+            "mensagem_sugerida": { "type": ["string", "null"], "maxLength": 400 }
+          }
+        },
+        "produto_sugerido": { "type": ["string", "null"], "maxLength": 80, "description": "NAO_INVENTAR: so nomes do CATALOGO do contexto" },
+        "como_abordar": { "type": ["string", "null"], "maxLength": 300 },
+        "resumo": { "type": "string", "maxLength": 280 }
+      }
+    }
+  }
+}

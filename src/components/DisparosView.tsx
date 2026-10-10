@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Partner, Conexao, DisparoCampanha, ColunaCrm, CartaoCrm } from "@/types";
-import { supabase } from "@/lib/supabase";
+import { supabase, exigirLinhas } from "@/lib/supabase";
 import {
   Megaphone,
   Plus,
@@ -25,6 +25,9 @@ interface DisparosViewProps {
   cartoes: CartaoCrm[];
   onRefresh: () => void;
 }
+
+// "em_andamento" é o valor antigo da tela; o banco só aceita enfileirando/enviando.
+const emAndamento = (status: string) => status === "enfileirando" || status === "enviando" || status === "em_andamento";
 
 export const DisparosView: React.FC<DisparosViewProps> = ({
   partner,
@@ -61,9 +64,12 @@ export const DisparosView: React.FC<DisparosViewProps> = ({
       return;
     }
 
-    const conexaoAtiva = conexoes.find((c) => c.status === "conectado") || conexoes[0];
+    // Campanha em massa só sai pelo computador do mentorado: nunca pelo IP do servidor, que é dividido
+    // por todos os mentorados (o banco também recusa campanha em conexão do servidor).
+    const doComputador = conexoes.filter((c) => c.modo !== "gateway");
+    const conexaoAtiva = doComputador.find((c) => c.status === "conectado") || doComputador[0];
     if (!conexaoAtiva) {
-      toast.error("Crie ao menos uma conexão de WhatsApp antes de disparar");
+      toast.error("Campanha só sai por uma conexão \"No meu computador\". Crie uma em Conectar WhatsApp.");
       return;
     }
 
@@ -78,7 +84,7 @@ export const DisparosView: React.FC<DisparosViewProps> = ({
           nome: nomeCampanha.trim(),
           mensagem: mensagemCampanha.trim(),
           intervalo_segundos: Number(intervaloSegundos) || 20,
-          status: "em_andamento",
+          status: "enviando",
           iniciado_em: new Date().toISOString(),
         })
         .select()
@@ -112,22 +118,29 @@ export const DisparosView: React.FC<DisparosViewProps> = ({
       // 3. Enfileira as mensagens no Supabase com espaçamento de tempo
       const agora = new Date();
       let index = 0;
+      let enfileiradas = 0;
+      let ultimaFalha: string | null = null;
 
       for (const alvo of listaAlvos) {
         // Data agendada com intervalo em segundos
         const agendado = new Date(agora.getTime() + index * (Number(intervaloSegundos) || 20) * 1000);
+        index++;
 
         // Acha ou cria conversa
-        let { data: conversa } = await supabase
+        const { data: conversa, error: erroBusca } = await supabase
           .from("bot_conversas")
           .select("id")
           .eq("conexao_id", conexaoAtiva.id)
           .eq("telefone", alvo.telefone)
           .maybeSingle();
+        if (erroBusca) {
+          ultimaFalha = erroBusca.message;
+          continue;
+        }
 
-        let conversaId = conversa?.id;
+        let conversaId: string | undefined = conversa?.id;
         if (!conversaId) {
-          const { data: nova } = await supabase
+          const { data: nova, error: erroNova } = await supabase
             .from("bot_conversas")
             .insert({
               conexao_id: conexaoAtiva.id,
@@ -138,6 +151,10 @@ export const DisparosView: React.FC<DisparosViewProps> = ({
             })
             .select("id")
             .single();
+          if (erroNova) {
+            ultimaFalha = erroNova.message;
+            continue;
+          }
           conversaId = nova?.id;
         }
 
@@ -148,20 +165,29 @@ export const DisparosView: React.FC<DisparosViewProps> = ({
             alvo.nome || "Cliente"
           );
 
-          await supabase.from("bot_mensagens").insert({
+          const { error: erroMsg } = await supabase.from("bot_mensagens").insert({
             conversa_id: conversaId,
             direcao: "saida",
             tipo: "texto",
             corpo: textoPersonalizado,
             status: "pendente",
+            disparo_id: camp.id,
             agendado_para: agendado.toISOString(),
           });
+          if (erroMsg) ultimaFalha = erroMsg.message;
+          else enfileiradas++;
         }
-
-        index++;
       }
 
-      toast.success(`Campanha "${nomeCampanha}" iniciada! ${listaAlvos.length} mensagens enfileiradas.`);
+      if (enfileiradas < listaAlvos.length) {
+        toast.error(
+          `${listaAlvos.length - enfileiradas} de ${listaAlvos.length} mensagens não entraram na fila` +
+            (ultimaFalha ? `: ${ultimaFalha}` : "")
+        );
+      }
+      if (enfileiradas > 0) {
+        toast.success(`Campanha "${nomeCampanha}" iniciada! ${enfileiradas} mensagens enfileiradas.`);
+      }
       setModalNovaCampanha(false);
       setNomeCampanha("");
       setMensagemCampanha("");
@@ -177,11 +203,13 @@ export const DisparosView: React.FC<DisparosViewProps> = ({
   const cancelarCampanha = async (id: string) => {
     if (!confirm("Deseja realmente cancelar os envios pendentes desta campanha?")) return;
     try {
-      const { error } = await supabase
-        .from("bot_disparos")
-        .update({ status: "cancelado", concluido_em: new Date().toISOString() })
-        .eq("id", id);
-      if (error) throw error;
+      exigirLinhas(
+        await supabase
+          .from("bot_disparos")
+          .update({ status: "cancelado", concluido_em: new Date().toISOString() })
+          .eq("id", id)
+          .select("id")
+      );
       toast.success("Campanha cancelada!");
       onRefresh();
     } catch (err: any) {
@@ -224,7 +252,7 @@ export const DisparosView: React.FC<DisparosViewProps> = ({
                   className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
                     camp.status === "concluido"
                       ? "bg-red-600/20 text-red-300 border border-red-500/30"
-                      : camp.status === "em_andamento"
+                      : emAndamento(camp.status)
                       ? "bg-blue-500/20 text-blue-400 border border-blue-500/30"
                       : "bg-white/10 text-slate-400"
                   }`}
@@ -252,7 +280,7 @@ export const DisparosView: React.FC<DisparosViewProps> = ({
 
             {/* Actions */}
             <div className="flex items-center gap-3">
-              {camp.status === "em_andamento" && (
+              {emAndamento(camp.status) && (
                 <button
                   onClick={() => cancelarCampanha(camp.id)}
                   className="px-3 py-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 text-xs font-bold transition flex items-center gap-1.5"

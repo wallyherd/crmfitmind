@@ -1,0 +1,19 @@
+{
+  "name": "crm-mentoria-gateway",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Gateway de WhatsApp (Baileys) do CRM da mentoria: mantém as sessões e manda os eventos para o CRM",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node gateway.mjs",
+    "pc": "node pc.mjs",
+    "test": "node --test \"test/*.test.mjs\""
+  },
+  "dependencies": {
+    "@whiskeysockets/baileys": "6.7.24",
+    "qrcode": "1.5.4"
+  }
+}

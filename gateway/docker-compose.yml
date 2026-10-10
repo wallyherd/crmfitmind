@@ -1,0 +1,47 @@
+# VPS do gateway: o gateway (sem porta publicada) e o Caddy na frente,
+# que só deixa passar POST /acordar e cuida do certificado TLS.
+#
+#   cp .env.exemplo .env   # e preencha
+#   mkdir -p dados && sudo chown -R 1000:1000 dados && chmod 700 dados
+#   docker compose up -d --build
+
+services:
+  gateway:
+    build: .
+    restart: unless-stopped
+    init: true          # o Node não é bom PID 1: o tini repassa sinais e recolhe processos
+    env_file: .env
+    environment:
+      GATEWAY_HOST: 0.0.0.0
+      GATEWAY_PORTA: "8080"
+      DADOS_DIR: /dados
+    volumes:
+      # Quem tem esta pasta tem o WhatsApp dos mentorados. Backup só cifrado (LEIA-ME.md).
+      - ./dados:/dados
+    expose:
+      - "8080"
+    stop_grace_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    depends_on:
+      - gateway
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      GATEWAY_DOMINIO: ${GATEWAY_DOMINIO:?defina GATEWAY_DOMINIO no .env}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_dados:/data
+      - caddy_config:/config
+
+volumes:
+  caddy_dados:
+  caddy_config:

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { QuadroCrm, ColunaCrm, CartaoCrm, AtividadeCrm } from "@/types";
-import { supabase } from "@/lib/supabase";
+import { supabase, exigirLinhas } from "@/lib/supabase";
+import { apiJson } from "@/lib/api";
 import {
   Plus,
   Trash2,
@@ -82,7 +83,8 @@ export const CrmBoardView: React.FC<CrmBoardViewProps> = ({
         contato_nome: novoNome.trim() || null,
         contato_telefone: novoTelefone.replace(/\D/g, "") || null,
         contato_email: novoEmail.trim() || null,
-        valor: novoValor ? parseFloat(novoValor) : null,
+        // crm_cartoes.valor não existe no banco instalado hoje: só envia quando preenchido.
+        ...(novoValor ? { valor: parseFloat(novoValor) } : {}),
         descricao: novaDescricao.trim() || null,
         posicao: 9999,
         prioridade: "normal",
@@ -97,27 +99,31 @@ export const CrmBoardView: React.FC<CrmBoardViewProps> = ({
     }
   };
 
+  const carregarAtividades = async (cartaoId: string) => {
+    const { data, error } = await supabase
+      .from("crm_atividades")
+      .select("*")
+      .eq("cartao_id", cartaoId)
+      .order("created_at", { ascending: false });
+    if (error) console.warn("Erro ao carregar atividades:", error.message);
+    setAtividadesCartao((data as AtividadeCrm[]) || []);
+  };
+
   const abrirDetalhes = async (cartao: CartaoCrm) => {
     setCartaoDetalhes(cartao);
-    try {
-      const { data } = await supabase
-        .from("crm_atividades")
-        .select("*")
-        .eq("cartao_id", cartao.id)
-        .order("created_at", { ascending: false });
-      setAtividadesCartao((data as AtividadeCrm[]) || []);
-    } catch {
-      setAtividadesCartao([]);
-    }
+    setAtividadesCartao([]);
+    await carregarAtividades(cartao.id);
   };
 
   const moverCartao = async (cartaoId: string, novaColunaId: string) => {
     try {
-      const { error } = await supabase
-        .from("crm_cartoes")
-        .update({ coluna_id: novaColunaId, updated_at: new Date().toISOString() })
-        .eq("id", cartaoId);
-      if (error) throw error;
+      exigirLinhas(
+        await supabase
+          .from("crm_cartoes")
+          .update({ coluna_id: novaColunaId, updated_at: new Date().toISOString() })
+          .eq("id", cartaoId)
+          .select("id")
+      );
       toast.success("Lead movido de coluna");
       onRefresh();
       if (cartaoDetalhes && cartaoDetalhes.id === cartaoId) {
@@ -131,8 +137,7 @@ export const CrmBoardView: React.FC<CrmBoardViewProps> = ({
   const deletarCartao = async (cartaoId: string) => {
     if (!confirm("Deseja realmente excluir este lead?")) return;
     try {
-      const { error } = await supabase.from("crm_cartoes").delete().eq("id", cartaoId);
-      if (error) throw error;
+      exigirLinhas(await supabase.from("crm_cartoes").delete().eq("id", cartaoId).select("id"));
       toast.success("Lead excluído");
       setCartaoDetalhes(null);
       onRefresh();
@@ -154,9 +159,8 @@ export const CrmBoardView: React.FC<CrmBoardViewProps> = ({
 
     setEnviandoMsg(true);
     try {
-      const res = await fetch("/api/bot/disparos/enviar-direta", {
+      await apiJson("/api/bot/disparos/enviar-direta", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           conexaoId,
           telefone: cartaoDetalhes.contato_telefone,
@@ -165,18 +169,9 @@ export const CrmBoardView: React.FC<CrmBoardViewProps> = ({
         }),
       });
 
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.erro || "Falha ao enviar");
-
       toast.success("Mensagem enfileirada no WhatsApp!");
       setMsgDiretaTexto("");
-      // Recarrega atividades
-      const { data } = await supabase
-        .from("crm_atividades")
-        .select("*")
-        .eq("cartao_id", cartaoDetalhes.id)
-        .order("created_at", { ascending: false });
-      setAtividadesCartao((data as AtividadeCrm[]) || []);
+      await carregarAtividades(cartaoDetalhes.id);
     } catch (err: any) {
       toast.error(`Erro no envio: ${err.message}`);
     } finally {
@@ -197,7 +192,7 @@ export const CrmBoardView: React.FC<CrmBoardViewProps> = ({
     }
 
     const linhas = textoImportacao.split("\n").map((l) => l.trim()).filter(Boolean);
-    let adicionados = 0;
+    const novos = [];
 
     for (const linha of linhas) {
       const partes = linha.split(/[,;\t]/).map((p) => p.trim());
@@ -205,7 +200,7 @@ export const CrmBoardView: React.FC<CrmBoardViewProps> = ({
       const tel = (partes[1] || "").replace(/\D/g, "") || (partes[0] || "").replace(/\D/g, "");
 
       if (tel) {
-        await supabase.from("crm_cartoes").insert({
+        novos.push({
           quadro_id: quadroAtivo.id,
           coluna_id: primeiraColuna.id,
           titulo: nome,
@@ -214,22 +209,33 @@ export const CrmBoardView: React.FC<CrmBoardViewProps> = ({
           posicao: 9999,
           prioridade: "normal",
         });
-        adicionados++;
       }
     }
 
-    toast.success(`${adicionados} contatos importados com sucesso!`);
+    if (novos.length === 0) {
+      toast.error("Nenhuma linha com telefone encontrada");
+      return;
+    }
+
+    // Um insert só: ou entram todos, ou nenhum (e o erro aparece).
+    const { error } = await supabase.from("crm_cartoes").insert(novos);
+    if (error) {
+      toast.error(`Erro ao importar: ${error.message}`);
+      return;
+    }
+
+    toast.success(`${novos.length} contatos importados com sucesso!`);
     setTextoImportacao("");
     setModalImportar(false);
     onRefresh();
   };
 
   return (
-    <div className="p-6 space-y-6 flex flex-col h-[calc(100vh-4rem)]">
+    <div className="p-4 md:p-6 space-y-4 md:space-y-6 flex flex-col h-[calc(100dvh-8rem-env(safe-area-inset-bottom))] md:h-[calc(100dvh-4rem)]">
       {/* Top Controls: Funil Selector & Actions */}
       <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-white/10">
         <div className="flex items-center gap-3">
-          <h2 className="text-xl font-bold text-white tracking-tight">Funil de Vendas (Kanban)</h2>
+          <h2 className="text-lg md:text-xl font-bold text-white tracking-tight">Funil de Vendas (Kanban)</h2>
           {quadros.length > 0 && (
             <select
               value={quadroAtivo?.id || ""}
@@ -269,15 +275,15 @@ export const CrmBoardView: React.FC<CrmBoardViewProps> = ({
       </div>
 
       {/* Kanban Columns Board */}
-      <div className="flex-1 overflow-x-auto pb-4">
-        <div className="flex gap-4 h-full min-w-max items-start">
+      <div className="flex-1 min-h-0 overflow-x-auto snap-x snap-mandatory overscroll-x-contain -mx-4 px-4 md:mx-0 md:px-0 pb-4">
+        <div className="flex gap-3 md:gap-4 h-full min-w-max items-start">
           {colunas.map((coluna) => {
             const cartoesDaColuna = cartoes.filter((c) => c.coluna_id === coluna.id);
 
             return (
               <div
                 key={coluna.id}
-                className="w-80 flex flex-col rounded-2xl bg-slate-900/60 border border-white/10 p-3 h-full max-h-full"
+                className="w-[85vw] max-w-[20rem] sm:w-80 snap-start flex flex-col rounded-2xl bg-slate-900/60 border border-white/10 p-3 h-full max-h-full"
               >
                 {/* Column Header */}
                 <div className="flex items-center justify-between pb-3 px-1 border-b border-white/5">

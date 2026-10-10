@@ -1,0 +1,10 @@
+node_modules
+dados
+dados-pc
+config.json
+.env
+test
+*.md
+*.bat
+painel.html
+pc.mjs

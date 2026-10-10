@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Conector de WhatsApp</title>
+<style>
+  :root{
+    --bg:#e8eaec; --panel:#fff; --ink:#14171a; --muted:#5c646c; --line:#cfd5da;
+    --ok:#0f6f5c; --erro:#a52218; --aviso:#8a5a00;
+    --ui:"Segoe UI Variable Text","Segoe UI",ui-sans-serif,system-ui,sans-serif;
+    --dado:"Cascadia Mono",Consolas,ui-monospace,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--ui);font-size:14px;line-height:1.55}
+  .wrap{max-width:860px;margin:0 auto;padding:18px 16px 48px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;margin-bottom:16px}
+  .card h2{margin:0;padding:12px 16px;border-bottom:1px solid var(--line);font-size:13px;font-weight:600}
+  .card .corpo{padding:16px}
+  .rail{display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+        background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 16px;margin-bottom:16px}
+  .marca{font-weight:600}
+  .marca span{color:var(--muted);font-weight:400}
+  .cresce{flex:1}
+  .luz{display:inline-flex;align-items:center;gap:8px;font-family:var(--dado);font-size:12px;color:var(--muted)}
+  .ponto{width:9px;height:9px;border-radius:50%;background:#b6bcc2}
+  .ponto.ok{background:var(--ok)} .ponto.erro{background:var(--erro)} .ponto.aviso{background:var(--aviso)}
+  label{display:block;font-size:12px;color:var(--muted);margin:10px 0 4px}
+  input{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:7px;font-family:var(--ui);font-size:13.5px;background:#fff;color:var(--ink)}
+  button{font-family:var(--ui);font-size:13.5px;border:1px solid var(--line);background:#fbfcfc;border-radius:7px;padding:9px 13px;cursor:pointer;color:var(--ink)}
+  button:hover{background:#f0f3f5;border-color:#b9c1c8}
+  button.principal{background:var(--ok);border-color:#0d5f50;color:#fff;font-weight:600}
+  button.perigo{color:var(--erro);border-color:#e0b4b0}
+  .botoes{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+  .qr{text-align:center;padding:8px}
+  .qr img{width:280px;max-width:100%;height:auto;border:1px solid var(--line);border-radius:12px;background:#fff}
+  .codigo{font-family:var(--dado);font-size:30px;letter-spacing:4px;text-align:center;padding:12px}
+  .numeros{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px}
+  .numero{border:1px solid var(--line);border-radius:8px;padding:12px}
+  .numero b{display:block;font-size:20px;font-weight:600}
+  .numero small{color:var(--muted);font-size:11.5px}
+  .reg{font-family:var(--dado);font-size:12px;max-height:280px;overflow:auto}
+  .reg div{padding:6px 16px;border-bottom:1px solid #eceff1;border-left:3px solid #c4cad0}
+  .reg div.ok{border-left-color:var(--ok)} .reg div.erro{border-left-color:var(--erro)} .reg div.aviso{border-left-color:var(--aviso)}
+  .reg time{color:var(--muted);margin-right:10px}
+  .dica{color:var(--muted);font-size:12px;margin:10px 0 0}
+  .alerta{padding:10px 12px;border:1px solid #e3cba0;background:#fdf7ec;border-radius:7px;font-size:12.5px;color:#6b4a10;margin-top:10px}
+  [hidden]{display:none !important}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="rail">
+    <div class="marca">Conector de WhatsApp <span>· CRM · <span id="versao"></span></span></div>
+    <div class="cresce"></div>
+    <div class="luz"><span class="ponto" id="pontoWa"></span><span id="txtWa">—</span></div>
+    <div class="luz"><span class="ponto" id="pontoNuvem"></span><span id="txtNuvem">CRM: —</span></div>
+  </div>
+
+  <div class="card" id="cardQr" hidden>
+    <h2>Ler o código</h2>
+    <div class="corpo qr">
+      <img id="imgQr" alt="Código QR para conectar o WhatsApp">
+      <p class="dica">No celular: WhatsApp → Aparelhos conectados → Conectar aparelho.</p>
+    </div>
+  </div>
+
+  <div class="card" id="cardCodigo" hidden>
+    <h2>Digite este código no celular</h2>
+    <div class="corpo">
+      <div class="codigo" id="txtCodigo"></div>
+      <p class="dica">WhatsApp → Aparelhos conectados → Conectar aparelho → Conectar com número de telefone.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Situação</h2>
+    <div class="corpo">
+      <div class="numeros">
+        <div class="numero"><b id="nRecebidas">0</b><small>capturadas</small></div>
+        <div class="numero"><b id="nEnviadas">0</b><small>enviadas</small></div>
+        <div class="numero"><b id="nFila">0</b><small>esperando o CRM</small></div>
+        <div class="numero"><b id="nNumero">—</b><small>número</small></div>
+      </div>
+      <div class="alerta" id="alertaFila" hidden>
+        Tem evento guardado neste computador porque o CRM não respondeu. Ele sobe
+        sozinho quando a internet voltar — não precisa fazer nada.
+      </div>
+      <p class="dica" id="txtEnvio"></p>
+      <div class="botoes" id="botoesParear" hidden>
+        <button class="principal" id="btnQr">Conectar com QR</button>
+        <button id="btnCodigo">Conectar com código</button>
+        <input id="telefone" placeholder="seu número com DDD, ex.: 65 99999-0000" style="max-width:280px">
+      </div>
+      <div class="botoes" id="botoesConectado" hidden>
+        <button class="perigo" id="btnDesconectar">Desconectar e apagar a sessão deste computador</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Configuração</h2>
+    <div class="corpo">
+      <label for="conexaoId">Identificador da conexão</label>
+      <input id="conexaoId" placeholder="cole aqui o identificador mostrado no CRM" autocomplete="off">
+      <label for="segredo">Segredo</label>
+      <input id="segredo" type="password" placeholder="cole aqui o segredo mostrado no CRM" autocomplete="off">
+      <div class="botoes">
+        <button class="principal" id="btnSalvar">Salvar</button>
+        <button id="btnTestar">Testar ligação com o CRM</button>
+      </div>
+      <p class="dica">Os dois aparecem no CRM, na tela da conexão, em "Credenciais do conector".
+        O endereço do CRM fica no arquivo config.json desta pasta.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Registro</h2>
+    <div class="reg" id="reg"></div>
+  </div>
+</div>
+
+<script>
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const post = (url, corpo) => fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(corpo || {}) })
+  .then((r) => r.json()).catch((e) => ({ ok: false, erro: e.message }));
+
+const ROTULO = {
+  parada: 'parado', conectando: 'conectando', aguardando_qr: 'aguardando a leitura do QR',
+  aguardando_codigo: 'aguardando o código no celular', conectado: 'conectado',
+  desconectado: 'desconectado', deslogado: 'desconectado do celular', erro: 'com erro',
+};
+
+async function atualizar() {
+  let e;
+  try { e = await (await fetch('/api/estado')).json(); }
+  catch { $('#txtWa').textContent = 'conector fora do ar'; return; }
+
+  $('#versao').textContent = e.versao || '';
+  const classe = e.conexao === 'conectado' ? 'ok' : ['erro', 'deslogado', 'desconectado'].includes(e.conexao) ? 'erro' : 'aviso';
+  $('#pontoWa').className = 'ponto ' + classe;
+  $('#txtWa').textContent = (ROTULO[e.conexao] || e.conexao) + (e.detalhe ? ` — ${e.detalhe}` : '');
+  $('#pontoNuvem').className = 'ponto ' + (e.nuvem === 'ok' ? 'ok' : e.nuvem === 'falha' ? 'erro' : '');
+  $('#txtNuvem').textContent = 'CRM: ' + (e.nuvem === 'ok' ? 'respondendo' : e.nuvem === 'falha' ? 'sem resposta' : 'não testado');
+
+  $('#nRecebidas').textContent = e.recebidas;
+  $('#nEnviadas').textContent = e.enviadas;
+  $('#nFila').textContent = e.naFilaLocal;
+  $('#nNumero').textContent = e.numero || '—';
+  $('#alertaFila').hidden = !(e.naFilaLocal > 0 && e.nuvem === 'falha');
+  $('#txtEnvio').textContent = e.envioLigado
+    ? 'Envio pelo CRM ligado: respostas do CRM saem por este número.'
+    : 'Envio pelo CRM desligado: este conector só captura. (Para ligar, "botAtivo": true no config.json.)';
+
+  $('#cardQr').hidden = !e.qrDataUrl;
+  if (e.qrDataUrl) $('#imgQr').src = e.qrDataUrl;
+  $('#cardCodigo').hidden = !e.codigo;
+  $('#txtCodigo').textContent = e.codigo ? `${e.codigo.slice(0, 4)}-${e.codigo.slice(4)}` : '';
+
+  const precisaParear = e.configurado && ['desconectado', 'deslogado', 'erro', 'parada'].includes(e.conexao);
+  $('#botoesParear').hidden = !precisaParear;
+  $('#botoesConectado').hidden = e.conexao !== 'conectado';
+
+  if (!$('#conexaoId').matches(':focus')) $('#conexaoId').value = e.conexaoId || $('#conexaoId').value;
+
+  $('#reg').innerHTML = (e.registro || []).map((l) =>
+    `<div class="${esc(l.tipo)}"><time>${esc(new Date(l.em).toLocaleTimeString('pt-BR'))}</time>${esc(l.texto)}</div>`
+  ).join('') || '<div>Nada ainda.</div>';
+}
+
+$('#btnSalvar').onclick = async () => {
+  const r = await post('/api/config', { conexaoId: $('#conexaoId').value, segredo: $('#segredo').value });
+  if (!r.ok) alert('Não salvou: ' + r.erro);
+  $('#segredo').value = '';
+  atualizar();
+};
+$('#btnTestar').onclick = async () => {
+  const r = await post('/api/testar-nuvem');
+  alert(r.ok ? 'O CRM respondeu. Ligação ok.' : 'Não deu certo: ' + r.erro);
+  atualizar();
+};
+$('#btnQr').onclick = async () => { const r = await post('/api/parear', { metodo: 'qr' }); if (!r.ok) alert(r.erro); atualizar(); };
+$('#btnCodigo').onclick = async () => {
+  const r = await post('/api/parear', { metodo: 'codigo', telefone: $('#telefone').value });
+  if (!r.ok) alert(r.erro);
+  atualizar();
+};
+$('#btnDesconectar').onclick = async () => {
+  if (!confirm('Desconectar o WhatsApp deste computador e apagar a sessão?')) return;
+  const r = await post('/api/desconectar');
+  if (!r.ok) alert(r.erro);
+  atualizar();
+};
+
+atualizar();
+setInterval(atualizar, 2000);
+</script>
+</body>
+</html>

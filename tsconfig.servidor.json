@@ -1,0 +1,15 @@
+{
+  "//": "Checa server/ e api/ como a Vercel roda (ESM no Node): import relativo sem .js vira erro aqui.",
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "strict": false,
+    "types": ["node"],
+    "rootDir": ".",
+    "outDir": "build-servidor"
+  },
+  "include": ["server", "api"]
+}

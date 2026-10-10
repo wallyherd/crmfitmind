@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { Partner, Profile } from "@/types";
+import { EmpresaAcesso, Profile } from "@/types";
+import { apiJson } from "@/lib/api";
+import { SENHA_MINIMA } from "@/components/NovaSenhaForm";
 import {
   Users,
   UserPlus,
@@ -18,10 +20,18 @@ import {
 import { toast } from "sonner";
 
 interface UsuariosAdminViewProps {
-  partners: Partner[];
+  empresas: EmpresaAcesso[];
+  /** Perfil de quem está logado: não pode excluir a si mesmo. */
+  meuProfileId: string;
 }
 
-export const UsuariosAdminView: React.FC<UsuariosAdminViewProps> = ({ partners }) => {
+// O servidor pode devolver a empresa com fantasy_name (tabela) ou nome (contrato novo).
+function nomeEmpresa(u: Profile): string | null {
+  const p: any = u.partner;
+  return p ? p.fantasy_name || p.nome || null : null;
+}
+
+export const UsuariosAdminView: React.FC<UsuariosAdminViewProps> = ({ empresas, meuProfileId }) => {
   const [usuarios, setUsuarios] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(false);
   const [busca, setBusca] = useState("");
@@ -38,6 +48,7 @@ export const UsuariosAdminView: React.FC<UsuariosAdminViewProps> = ({ partners }
   const [telefone, setTelefone] = useState("");
   const [partnerId, setPartnerId] = useState("");
   const [duracaoDias, setDuracaoDias] = useState<string>("30");
+  const [papel, setPapel] = useState<"user" | "admin">("user");
   const [salvando, setSalvando] = useState(false);
 
   // Form Alterar Senha
@@ -46,11 +57,8 @@ export const UsuariosAdminView: React.FC<UsuariosAdminViewProps> = ({ partners }
   const carregarUsuarios = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/admin/usuarios");
-      if (res.ok) {
-        const json = await res.json();
-        setUsuarios(json.usuarios || []);
-      }
+      const json = await apiJson<{ usuarios?: Profile[] }>("/api/admin/usuarios");
+      setUsuarios(json.usuarios || []);
     } catch (err: any) {
       toast.error(`Erro ao carregar usuários: ${err.message}`);
     } finally {
@@ -68,25 +76,25 @@ export const UsuariosAdminView: React.FC<UsuariosAdminViewProps> = ({ partners }
       toast.error("E-mail e senha são obrigatórios");
       return;
     }
+    if (senha.length < SENHA_MINIMA) {
+      toast.error(`A senha inicial precisa ter pelo menos ${SENHA_MINIMA} caracteres`);
+      return;
+    }
 
     setSalvando(true);
     try {
-      const res = await fetch("/api/admin/usuarios", {
+      await apiJson("/api/admin/usuarios", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: nome,
-          email,
+          email: email.trim().toLowerCase(),
           password: senha,
           phone: telefone,
-          partner_id: partnerId || null,
-          role: "user",
-          dias: duracaoDias ? Number(duracaoDias) : null,
+          role: papel,
+          partnerId: partnerId || null,
+          duracaoDias: duracaoDias ? Number(duracaoDias) : null,
         }),
       });
-
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.erro || "Falha ao cadastrar");
 
       toast.success("Usuário cadastrado com sucesso!");
       setModalNovoUsuario(false);
@@ -96,6 +104,7 @@ export const UsuariosAdminView: React.FC<UsuariosAdminViewProps> = ({ partners }
       setTelefone("");
       setPartnerId("");
       setDuracaoDias("30");
+      setPapel("user");
       carregarUsuarios();
     } catch (err: any) {
       toast.error(`Erro: ${err.message}`);
@@ -106,13 +115,10 @@ export const UsuariosAdminView: React.FC<UsuariosAdminViewProps> = ({ partners }
 
   const renovarAcesso = async (userId: string, dias: number | null) => {
     try {
-      const res = await fetch(`/api/admin/usuarios/${userId}/renovar`, {
+      await apiJson(`/api/admin/usuarios/${encodeURIComponent(userId)}/renovar`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ dias }),
       });
-
-      if (!res.ok) throw new Error("Falha ao renovar acesso");
 
       toast.success(
         dias ? `Acesso renovado por +${dias} dias!` : "Acesso vitalício concedido!"
@@ -127,16 +133,16 @@ export const UsuariosAdminView: React.FC<UsuariosAdminViewProps> = ({ partners }
   const salvarNovaSenha = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!modalAlterarSenha || !novaSenha) return;
+    if (novaSenha.length < SENHA_MINIMA) {
+      toast.error(`A senha precisa ter pelo menos ${SENHA_MINIMA} caracteres`);
+      return;
+    }
 
     try {
-      const res = await fetch(`/api/admin/usuarios/${modalAlterarSenha.id}/alterar-senha`, {
+      await apiJson(`/api/admin/usuarios/${encodeURIComponent(modalAlterarSenha.id)}/alterar-senha`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ novaSenha }),
       });
-
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.erro || "Falha ao alterar senha");
 
       toast.success("Senha alterada com sucesso!");
       setModalAlterarSenha(null);
@@ -149,13 +155,10 @@ export const UsuariosAdminView: React.FC<UsuariosAdminViewProps> = ({ partners }
   const alternarStatus = async (user: Profile) => {
     const novoStatus = user.status === "ativo" ? "suspenso" : "ativo";
     try {
-      const res = await fetch(`/api/admin/usuarios/${user.id}/status`, {
+      await apiJson(`/api/admin/usuarios/${encodeURIComponent(user.id)}/status`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: novoStatus }),
       });
-
-      if (!res.ok) throw new Error("Falha ao alterar status");
 
       toast.success(`Usuário ${novoStatus === "ativo" ? "ativado" : "suspenso"}!`);
       carregarUsuarios();
@@ -170,11 +173,7 @@ export const UsuariosAdminView: React.FC<UsuariosAdminViewProps> = ({ partners }
     }
 
     try {
-      const res = await fetch(`/api/admin/usuarios/${userId}`, {
-        method: "DELETE",
-      });
-
-      if (!res.ok) throw new Error("Falha ao excluir usuário");
+      await apiJson(`/api/admin/usuarios/${encodeURIComponent(userId)}`, { method: "DELETE" });
 
       toast.success("Usuário excluído com sucesso!");
       carregarUsuarios();
@@ -287,10 +286,10 @@ export const UsuariosAdminView: React.FC<UsuariosAdminViewProps> = ({ partners }
 
                     {/* Company */}
                     <td className="py-4 px-4 text-slate-300">
-                      {u.partner ? (
+                      {nomeEmpresa(u) ? (
                         <span className="flex items-center gap-1.5 font-medium">
                           <Building2 className="w-3.5 h-3.5 text-slate-500" />
-                          {u.partner.fantasy_name}
+                          {nomeEmpresa(u)}
                         </span>
                       ) : (
                         <span className="text-slate-500 text-[11px]">Não vinculada</span>
@@ -388,8 +387,8 @@ export const UsuariosAdminView: React.FC<UsuariosAdminViewProps> = ({ partners }
                           {u.status === "ativo" ? <XCircle className="w-4 h-4" /> : <CheckCircle2 className="w-4 h-4" />}
                         </button>
 
-                        {/* Excluir (Não pode excluir admin mestre) */}
-                        {u.email !== "admin@fitmind.com.br" && (
+                        {/* Excluir (ninguém exclui a própria conta por aqui) */}
+                        {u.id !== meuProfileId && (
                           <button
                             onClick={() => excluirUsuario(u.id, u.name || u.email || "Usuário")}
                             className="p-1.5 rounded-lg hover:bg-red-500/20 text-slate-500 hover:text-red-400 transition"
@@ -462,7 +461,9 @@ export const UsuariosAdminView: React.FC<UsuariosAdminViewProps> = ({ partners }
                   <input
                     type="password"
                     required
-                    placeholder="••••••••"
+                    minLength={SENHA_MINIMA}
+                    autoComplete="new-password"
+                    placeholder={`Mínimo ${SENHA_MINIMA} caracteres`}
                     value={senha}
                     onChange={(e) => setSenha(e.target.value)}
                     className="w-full rounded-xl bg-black border border-white/15 px-3 py-2 text-xs text-white focus:outline-none focus:border-red-500"
@@ -489,13 +490,25 @@ export const UsuariosAdminView: React.FC<UsuariosAdminViewProps> = ({ partners }
                     className="w-full rounded-xl bg-black border border-white/15 px-3 py-2 text-xs text-white focus:outline-none focus:border-red-500"
                   >
                     <option value="">Nenhuma</option>
-                    {partners.map((p) => (
+                    {empresas.map((p) => (
                       <option key={p.id} value={p.id}>
-                        {p.fantasy_name}
+                        {p.nome}
                       </option>
                     ))}
                   </select>
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-400 mb-1">Função</label>
+                <select
+                  value={papel}
+                  onChange={(e) => setPapel(e.target.value as "user" | "admin")}
+                  className="w-full rounded-xl bg-black border border-white/15 px-3 py-2 text-xs text-white focus:outline-none focus:border-red-500"
+                >
+                  <option value="user">Mentorado (vê só a própria empresa)</option>
+                  <option value="admin">Administrador (vê todas as empresas)</option>
+                </select>
               </div>
 
               {/* Duração de Acesso */}
@@ -629,7 +642,9 @@ export const UsuariosAdminView: React.FC<UsuariosAdminViewProps> = ({ partners }
                 <input
                   type="password"
                   required
-                  placeholder="Mínimo 4 caracteres"
+                  minLength={SENHA_MINIMA}
+                  autoComplete="new-password"
+                  placeholder={`Mínimo ${SENHA_MINIMA} caracteres`}
                   value={novaSenha}
                   onChange={(e) => setNovaSenha(e.target.value)}
                   className="w-full rounded-xl bg-black border border-white/15 px-3 py-2 text-xs text-white focus:outline-none focus:border-red-500"

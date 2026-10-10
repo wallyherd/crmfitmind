@@ -11,6 +11,17 @@ import {
   Megaphone,
   KanbanSquare,
 } from "lucide-react";
+import type { TabType } from "@/lib/rotas";
+import { BaixarDiaCompleto } from "@/components/BaixarDiaCompleto";
+import {
+  formatarMomento,
+  formatarTelefone,
+  iniciaisDe,
+  roboLigado,
+  rotuloStatus,
+  telefoneDaConversa,
+  tituloDaConversa,
+} from "@/lib/whatsapp";
 
 interface DashboardViewProps {
   partner: Partner | null;
@@ -18,7 +29,9 @@ interface DashboardViewProps {
   cartoes: CartaoCrm[];
   conversas: Conversa[];
   campanhas: DisparoCampanha[];
-  onNavigate: (tab: any) => void;
+  /** Fuso da empresa (vem do /api/data). */
+  fuso?: string;
+  onNavigate: (tab: TabType) => void;
 }
 
 export const DashboardView: React.FC<DashboardViewProps> = ({
@@ -27,17 +40,20 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   cartoes,
   conversas,
   campanhas,
+  fuso,
   onNavigate,
 }) => {
   const conexaoAtiva = conexoes.find((c) => c.status === "conectado");
+  const conexaoPrincipal = conexaoAtiva || conexoes[0] || null;
+  const robo = roboLigado(conexaoAtiva);
   const totalEnviadasHoje = conexoes.reduce((acc, c) => acc + (c.enviadas_hoje || 0), 0);
   const totalCartoes = cartoes.length;
   const conversasAtivas = conversas.filter((c) => c.estado === "bot" || c.estado === "humano").length;
 
   return (
-    <div className="p-8 space-y-8 max-w-7xl mx-auto">
+    <div className="p-4 md:p-8 space-y-6 md:space-y-8 max-w-7xl mx-auto">
       {/* Welcome Banner */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-black via-[#14080a] to-black border border-red-500/30 p-8 shadow-2xl">
+      <div className="hidden md:block relative overflow-hidden rounded-3xl bg-gradient-to-r from-black via-[#14080a] to-black border border-red-500/30 p-5 md:p-8 shadow-2xl">
         <div className="absolute right-0 top-0 w-96 h-96 bg-red-600/10 rounded-full blur-3xl pointer-events-none" />
         
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
@@ -73,18 +89,18 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               Nova Campanha
             </button>
             <button
-              onClick={() => onNavigate("conector")}
+              onClick={() => onNavigate("conectar")}
               className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#141418] hover:bg-[#1c1c22] text-white font-semibold text-xs border border-white/10 hover:border-red-500/40 transition"
             >
               <Smartphone className="w-4 h-4 text-red-500" />
-              Status Conector
+              Conectar WhatsApp
             </button>
           </div>
         </div>
       </div>
 
       {/* Metrics Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-5">
         {/* Card 1: Leads no Funil */}
         <div className="glass-card rounded-2xl p-5 relative overflow-hidden group hover:border-red-500/40">
           <div className="flex items-center justify-between">
@@ -115,10 +131,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${
               conexaoAtiva ? "bg-red-500/20 text-red-400 border border-red-500/30" : "bg-amber-500/20 text-amber-300"
             }`}>
-              {conexaoAtiva ? "1 Online" : "Desconectado"}
+              {conexaoAtiva ? `${conexoes.filter((c) => c.status === "conectado").length} Online` : "Desconectado"}
             </span>
           </div>
-          <p className="text-[11px] text-slate-500 mt-1">{conexaoAtiva?.numero ? `Número: ${conexaoAtiva.numero}` : "Aguardando pareamento"}</p>
+          <p className="text-[11px] text-slate-500 mt-1">{conexaoAtiva?.numero ? `Número: ${formatarTelefone(conexaoAtiva.numero)}` : "Aguardando pareamento"}</p>
         </div>
 
         {/* Card 3: Mensagens Enviadas Hoje */}
@@ -152,10 +168,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
       </div>
 
+      {/* Arquivo completo do dia (só do dono; nunca vai para a IA) */}
+      <BaixarDiaCompleto partnerId={partner?.id ?? null} fuso={fuso} />
+
       {/* Two Columns: Recent WhatsApp Chats & Active Campaigns */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Left: Atendimentos Recentes */}
-        <div className="glass-panel rounded-3xl p-6 space-y-4">
+        <div className="glass-panel rounded-3xl p-4 md:p-6 space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <MessageSquare className="w-4 h-4 text-red-500" />
@@ -170,39 +189,48 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
 
           <div className="space-y-2.5">
-            {conversas.slice(0, 5).map((conversa) => (
-              <div
+            {conversas.slice(0, 5).map((conversa) => {
+              const titulo = tituloDaConversa(conversa);
+              const tel = telefoneDaConversa(conversa);
+              return (
+              <button
+                type="button"
                 key={conversa.id}
                 onClick={() => onNavigate("conversas")}
-                className="p-3.5 rounded-2xl bg-white/[0.02] hover:bg-white/[0.06] border border-white/5 transition cursor-pointer flex items-center justify-between"
+                className="w-full text-left p-3.5 rounded-2xl bg-white/[0.02] hover:bg-white/[0.06] border border-white/5 transition cursor-pointer flex items-center justify-between gap-3"
               >
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-full bg-black border border-white/10 flex items-center justify-center font-bold text-xs text-red-500">
-                    {(conversa.nome || conversa.telefone).slice(0, 2).toUpperCase()}
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-9 h-9 shrink-0 rounded-full bg-black border border-white/10 flex items-center justify-center font-bold text-xs text-red-500">
+                    {iniciaisDe(titulo)}
                   </div>
-                  <div>
-                    <h4 className="text-xs font-bold text-white">{conversa.nome || conversa.telefone}</h4>
-                    <p className="text-[11px] text-slate-400 flex items-center gap-2">
-                      <span>{conversa.telefone}</span>
-                      <span>•</span>
-                      <span className={`px-1.5 py-0.2 rounded text-[10px] font-semibold ${
-                        conversa.estado === "humano" ? "bg-amber-500/20 text-amber-300" : "bg-red-500/20 text-red-400"
-                      }`}>
-                        {conversa.estado === "humano" ? "Atendente Humano" : "Robô Ativo"}
+                  <div className="min-w-0">
+                    <h4 className="text-xs font-bold text-white truncate">{titulo}</h4>
+                    <p className="text-[11px] text-slate-400 flex flex-wrap items-center gap-x-2">
+                      <span className="font-mono">
+                        {tel ? formatarTelefone(tel) : conversa.tipo === "grupo" ? "Grupo" : "Número não revelado"}
                       </span>
+                      {conversa.tipo !== "grupo" && (
+                        <>
+                          <span>•</span>
+                          <span className={`px-1.5 py-0.2 rounded text-[10px] font-semibold ${
+                            conversa.estado === "humano" ? "bg-amber-500/20 text-amber-300" : "bg-red-500/20 text-red-400"
+                          }`}>
+                            {conversa.estado === "humano" ? "Você atende" : robo === false ? "Só registro" : "Robô atende"}
+                          </span>
+                        </>
+                      )}
                     </p>
                   </div>
                 </div>
 
-                <div className="text-right">
+                <div className="text-right shrink-0">
                   <span className="text-[10px] text-slate-500">
-                    {conversa.ultima_mensagem_em
-                      ? new Date(conversa.ultima_mensagem_em).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                      : "Recente"}
+                    {formatarMomento(conversa.ultima_mensagem_em) || "Recente"}
                   </span>
                 </div>
-              </div>
-            ))}
+              </button>
+              );
+            })}
 
             {conversas.length === 0 && (
               <div className="text-center py-8 text-slate-500 text-xs">
@@ -213,16 +241,16 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
 
         {/* Right: Status do Conector & Campanhas */}
-        <div className="glass-panel rounded-3xl p-6 space-y-6">
+        <div className="glass-panel rounded-3xl p-4 md:p-6 space-y-6">
           {/* Conector Status Box */}
           <div>
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <Smartphone className="w-4 h-4 text-red-500" />
-                <h3 className="text-sm font-bold text-white">Conector do WhatsApp</h3>
+                <h3 className="text-sm font-bold text-white">WhatsApp</h3>
               </div>
               <button
-                onClick={() => onNavigate("conector")}
+                onClick={() => onNavigate("conectar")}
                 className="text-xs text-red-400 hover:text-red-300 flex items-center gap-1 font-semibold"
               >
                 Gerenciar <ArrowUpRight className="w-3.5 h-3.5" />
@@ -235,18 +263,20 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
                   conexaoAtiva ? "bg-red-500/20 text-red-400 border border-red-500/30" : "bg-amber-500/20 text-amber-400"
                 }`}>
-                  {conexaoAtiva ? "Conectado & Respondendo" : "Aguardando Inicialização"}
+                  {conexaoAtiva ? "Conectado" : conexaoPrincipal ? rotuloStatus(conexaoPrincipal.status) : "Nenhuma conexão"}
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-xs text-slate-400">Último Batimento (Heartbeat):</span>
+                <span className="text-xs text-slate-400">Último sinal:</span>
                 <span className="text-xs font-mono text-white">
-                  {conexaoAtiva?.visto_em ? new Date(conexaoAtiva.visto_em).toLocaleTimeString() : "Nunca"}
+                  {formatarMomento(conexaoPrincipal?.visto_em) || "Nunca"}
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-xs text-slate-400">Fila de Disparos:</span>
-                <span className="text-xs font-bold text-red-400">Ativa (Polling a cada 3s)</span>
+                <span className="text-xs text-slate-400">Robô:</span>
+                <span className={`text-xs font-bold ${robo ? "text-amber-300" : "text-slate-300"}`}>
+                  {robo === null ? "—" : robo ? "Ligado" : "Desligado (só registra)"}
+                </span>
               </div>
             </div>
           </div>

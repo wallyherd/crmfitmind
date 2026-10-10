@@ -1,0 +1,21 @@
+{
+  "model": "opusplan",
+  "effortLevel": "medium",
+  "permissions": {
+    "additionalDirectories": ["C:/dev/crm-mentoria-plano"],
+    "allow": [
+      "Bash(npx tsc --noEmit -p .)",
+      "Bash(npm run build)",
+      "Bash(npm test)",
+      "Bash(npm run banco)",
+      "Bash(npm run servidor)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git show:*)"
+    ],
+    "deny": [
+      "Bash(git push:*)"
+    ]
+  }
+}

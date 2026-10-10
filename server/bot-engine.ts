@@ -1,4 +1,4 @@
-import { Db } from "./supabase";
+import type { Db } from "./supabase.js";
 
 export type Conexao = {
   id: string;
@@ -51,7 +51,8 @@ export function casarOpcao<T extends OpcaoCasavel>(opcoes: T[], resposta: string
   return null;
 }
 
-export async function enfileirar(db: Db, conversaId: string, corpo: string) {
+// Resposta do robô na fila de saída. O banco recusa (trava 3) robô em grupo ou em conversa ignorada.
+export async function enfileirarResposta(db: Db, conversaId: string, corpo: string) {
   if (!corpo?.trim()) return null;
   const { data, error } = await db
     .from("bot_mensagens")
@@ -61,6 +62,7 @@ export async function enfileirar(db: Db, conversaId: string, corpo: string) {
       tipo: "texto",
       corpo,
       status: "pendente",
+      autor: "bot",
     })
     .select("id")
     .single();
@@ -72,12 +74,36 @@ export async function enfileirar(db: Db, conversaId: string, corpo: string) {
       _conversa_id: conversaId,
       _texto: corpo,
       _direcao: "saida",
+      _autor: "bot",
     });
   } catch (err) {
     // Ignora se não houver cartão vinculado
   }
 
   return (data as { id: string } | null)?.id ?? null;
+}
+
+// Resposta humana (celular ou CRM) há menos que isso: o robô não se mete.
+export const JANELA_HUMANO_MS = 30 * 60 * 1000;
+
+type ConversaDoMotor = {
+  id: string;
+  estado: string;
+  fluxo_id: string | null;
+  passo_atual_id: string | null;
+  tentativas_passo: number | null;
+  tipo?: string | null;
+  privacidade?: string | null;
+  ultima_saida_em?: string | null;
+};
+
+// Trava 2 (motor): repete as condições da ingestão com o que está no banco agora.
+export function roboBloqueado(conversa: ConversaDoMotor, botAtivo: unknown, agoraMs = Date.now()): string | null {
+  if (botAtivo !== true) return "robo_desligado";
+  if (conversa.tipo === "grupo") return "grupo";
+  if ((conversa.privacidade ?? "normal") !== "normal") return "privacidade";
+  if (conversa.ultima_saida_em && agoraMs - Date.parse(conversa.ultima_saida_em) < JANELA_HUMANO_MS) return "humano_recente";
+  return null;
 }
 
 async function escolherFluxo(db: Db, conexao: Conexao, texto: string) {
@@ -149,45 +175,30 @@ export async function processarMensagem(
     nome: string | null;
   },
 ) {
-  const { conexao, conversaId, telefone, texto, nome } = entrada;
+  const { conexao, conversaId, texto } = entrada;
+  let enfileiradas = 0;
+  const enfileirar = async (_db: Db, id: string, corpo: string) => {
+    const novo = await enfileirarResposta(_db, id, corpo);
+    if (novo) enfileiradas++;
+    return novo;
+  };
+  const resultado = <T extends Record<string, unknown>>(r: T) => ({ ...r, enfileiradas });
 
-  // 1. Busca conversa atual
+  // 1. Busca conversa atual. Cartão e linha do tempo da entrada já foram feitos na ingestão.
   const { data: conversa } = await db
     .from("bot_conversas")
-    .select("id, estado, fluxo_id, passo_atual_id, cartao_id, tentativas_passo")
+    .select("id, estado, fluxo_id, passo_atual_id, tentativas_passo, tipo, privacidade, ultima_saida_em")
     .eq("id", conversaId)
     .single();
 
-  if (!conversa) return { acao: "conversa_nao_encontrada" };
+  if (!conversa) return resultado({ acao: "conversa_nao_encontrada" });
+
+  const { data: cx } = await db.from("bot_conexoes").select("bot_ativo").eq("id", conexao.id).maybeSingle();
+  const motivo = roboBloqueado(conversa as ConversaDoMotor, cx?.bot_ativo);
+  if (motivo) return resultado({ acao: "robo_bloqueado", motivo });
 
   // Se já está com atendente humano, não interfere
-  if (conversa.estado === "humano") {
-    try {
-      await db.rpc("bot_registrar_no_cartao", {
-        _conversa_id: conversaId,
-        _texto: texto,
-        _direcao: "entrada",
-      });
-    } catch {}
-    return { acao: "humano_ativo" };
-  }
-
-  // 2. Vincula ao CRM se ainda não vinculado
-  if (!conversa.cartao_id) {
-    try {
-      await db.rpc("bot_vincular_cartao", { _conversa_id: conversaId });
-    } catch (e) {
-      console.warn("Erro ao vincular cartão no CRM:", e);
-    }
-  }
-
-  try {
-    await db.rpc("bot_registrar_no_cartao", {
-      _conversa_id: conversaId,
-      _texto: texto,
-      _direcao: "entrada",
-    });
-  } catch {}
+  if (conversa.estado !== "bot") return resultado({ acao: "humano_ativo" });
 
   // 3. Falar com atendente em qualquer ponto
   const tNorm = normalizar(texto);
@@ -199,7 +210,7 @@ export async function processarMensagem(
   ) {
     await db.from("bot_conversas").update({ estado: "humano" }).eq("id", conversaId);
     await enfileirar(db, conversaId, "Certo! Já chamei um atendente da nossa equipe. Aguarde um momento que em breve responderemos aqui.");
-    return { acao: "transferido_humano" };
+    return resultado({ acao: "transferido_humano" });
   }
 
   // 4. Execução do Fluxo
@@ -209,7 +220,7 @@ export async function processarMensagem(
   if (!fluxoId || !passoId) {
     const fluxo = await escolherFluxo(db, conexao, texto);
     if (!fluxo || !fluxo.passo_inicial_id) {
-      return { acao: "sem_fluxo" };
+      return resultado({ acao: "sem_fluxo" });
     }
     fluxoId = fluxo.id;
     passoId = fluxo.passo_inicial_id;
@@ -223,13 +234,13 @@ export async function processarMensagem(
     const passo = await lerPasso(db, passoId);
     if (passo) {
       await enfileirar(db, conversaId, textoDoPasso(passo));
-      return { acao: "fluxo_iniciado", passoId };
+      return resultado({ acao: "fluxo_iniciado", passoId });
     }
   }
 
   // Processa resposta para o passo atual
   const passoAtual = await lerPasso(db, passoId);
-  if (!passoAtual) return { acao: "passo_invalido" };
+  if (!passoAtual) return resultado({ acao: "passo_invalido" });
 
   if (passoAtual.tipo === "pergunta" && passoAtual.opcoes?.length) {
     const opcaoEscolhida = casarOpcao(passoAtual.opcoes, texto);
@@ -240,7 +251,7 @@ export async function processarMensagem(
         if (proximo.tipo === "transferir") {
           await db.from("bot_conversas").update({ estado: "humano", passo_atual_id: proximo.id }).eq("id", conversaId);
           await enfileirar(db, conversaId, proximo.conteudo || "Aguarde um momento, transferindo para nosso atendente...");
-          return { acao: "transferido_humano" };
+          return resultado({ acao: "transferido_humano" });
         }
 
         await db.from("bot_conversas").update({
@@ -249,7 +260,7 @@ export async function processarMensagem(
         }).eq("id", conversaId);
 
         await enfileirar(db, conversaId, textoDoPasso(proximo));
-        return { acao: "avancou", proximoPassoId: proximo.id };
+        return resultado({ acao: "avancou", proximoPassoId: proximo.id });
       }
     } else {
       // Não entendeu
@@ -257,14 +268,14 @@ export async function processarMensagem(
       if (tentativas >= 2) {
         await db.from("bot_conversas").update({ estado: "humano", tentativas_passo: 0 }).eq("id", conversaId);
         await enfileirar(db, conversaId, "Não consegui identificar sua resposta. Vou transferir seu contato para nossa equipe continuar com você aqui.");
-        return { acao: "transferido_tentativas" };
+        return resultado({ acao: "transferido_tentativas" });
       } else {
         await db.from("bot_conversas").update({ tentativas_passo: tentativas }).eq("id", conversaId);
         await enfileirar(db, conversaId, `Não compreendi a opção escolhida. Por favor, selecione uma das opções abaixo:\n\n${textoDoPasso(passoAtual)}`);
-        return { acao: "repetiu_opcoes" };
+        return resultado({ acao: "repetiu_opcoes" });
       }
     }
   }
 
-  return { acao: "processado" };
+  return resultado({ acao: "processado" });
 }

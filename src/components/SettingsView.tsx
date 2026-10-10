@@ -1,162 +1,91 @@
-import React, { useState, useEffect } from "react";
-import { updateSupabaseConfig } from "@/lib/supabase";
-import { Settings, Database, Key, ShieldAlert, Check, Copy, Terminal, Save } from "lucide-react";
-import { toast } from "sonner";
+import React from "react";
+import { MeResposta } from "@/types";
+import { supabaseUrlPublica } from "@/lib/supabase";
+import { NovaSenhaForm } from "@/components/NovaSenhaForm";
+import { Settings, User, Database, KeyRound, Building2 } from "lucide-react";
+import { PrivacidadeMentor } from "@/components/PrivacidadeMentor";
 
-export const SettingsView: React.FC = () => {
-  const [supabaseUrl, setSupabaseUrl] = useState(
-    localStorage.getItem("crm_supabase_url") || import.meta.env.VITE_SUPABASE_URL || ""
-  );
-  const [supabaseKey, setSupabaseKey] = useState(
-    localStorage.getItem("crm_supabase_anon_key") || import.meta.env.VITE_SUPABASE_ANON_KEY || ""
-  );
-  const [serviceRoleKey, setServiceRoleKey] = useState(
-    localStorage.getItem("crm_supabase_service_role") || ""
-  );
-  const [salvando, setSalvando] = useState(false);
+interface SettingsViewProps {
+  me: MeResposta;
+}
 
-  const salvarConfiguracoes = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!supabaseUrl.trim() || !supabaseKey.trim()) {
-      toast.error("Preencha a URL e a Chave Anon do Supabase");
-      return;
-    }
+const Linha: React.FC<{ rotulo: string; children: React.ReactNode }> = ({ rotulo, children }) => (
+  <div className="flex flex-wrap items-center justify-between gap-2 py-2 border-b border-white/5 last:border-0 text-xs">
+    <span className="text-slate-400">{rotulo}</span>
+    <span className="text-white font-medium text-right break-all">{children}</span>
+  </div>
+);
 
-    setSalvando(true);
-    try {
-      // 1. Salva no servidor backend
-      await fetch("/api/config", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          supabaseUrl: supabaseUrl.trim(),
-          serviceRoleKey: serviceRoleKey.trim(),
-        }),
-      });
-
-      // 2. Salva localmente no navegador
-      if (serviceRoleKey.trim()) {
-        localStorage.setItem("crm_supabase_service_role", serviceRoleKey.trim());
-      }
-      updateSupabaseConfig(supabaseUrl.trim(), supabaseKey.trim());
-      toast.success("Credenciais do Supabase configuradas com sucesso!");
-    } catch (err: any) {
-      toast.error(`Erro ao salvar no servidor: ${err.message}`);
-    } finally {
-      setSalvando(false);
-    }
-  };
-
-  const copiarComandoSql = () => {
-    navigator.clipboard.writeText(`psql "postgresql://postgres:SENHA@db.SEU-PROJETO.supabase.co:5432/postgres" -f banco-instalar-completo.sql`);
-    toast.success("Comando copiado!");
-  };
+export const SettingsView: React.FC<SettingsViewProps> = ({ me }) => {
+  const { profile, isAdmin, partners } = me;
+  const empresasDoDono = partners.filter((p) => me.donoDe?.includes(p.id));
+  const validade = profile.expira_em
+    ? new Date(profile.expira_em).toLocaleDateString("pt-BR")
+    : "Sem data de expiração";
 
   return (
-    <div className="p-8 space-y-8 max-w-4xl mx-auto">
+    <div className="p-4 md:p-8 space-y-6 md:space-y-8 max-w-4xl mx-auto">
       <div className="pb-4 border-b border-white/10">
         <h2 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
-          <Settings className="w-5 h-5 text-red-500" /> Configurações de Conexão & Banco de Dados
+          <Settings className="w-5 h-5 text-red-500" /> Minha Conta
         </h2>
-        <p className="text-xs text-slate-400 mt-0.5">
-          Defina as credenciais do seu projeto Supabase para alimentar o Robô e o CRM em tempo real.
-        </p>
+        <p className="text-xs text-slate-400 mt-0.5">Dados da sua conta e do projeto em que o CRM está rodando.</p>
       </div>
 
-      {/* Supabase Credentials Form */}
-      <div className="glass-panel rounded-3xl p-6 border border-white/10 space-y-5">
-        <div className="flex items-center gap-2 text-sm font-bold text-white">
-          <Database className="w-4 h-4 text-red-500" />
-          <span>Credenciais do Supabase (Frontend & Backend)</span>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="glass-panel rounded-3xl p-4 md:p-6 border border-white/10 space-y-3">
+          <div className="flex items-center gap-2 text-sm font-bold text-white">
+            <User className="w-4 h-4 text-red-500" /> Conta
+          </div>
+          <div>
+            <Linha rotulo="Nome">{profile.name || "—"}</Linha>
+            <Linha rotulo="E-mail">{profile.email || "—"}</Linha>
+            <Linha rotulo="Telefone">{profile.phone || "—"}</Linha>
+            <Linha rotulo="Função">{isAdmin ? "Administrador" : "Mentorado"}</Linha>
+            <Linha rotulo="Situação">{profile.status}</Linha>
+            <Linha rotulo="Acesso válido até">{validade}</Linha>
+          </div>
         </div>
 
-        <form onSubmit={salvarConfiguracoes} className="space-y-4">
-          <div>
-            <label className="block text-xs font-semibold text-slate-400 mb-1">
-              Project URL (SUPABASE_URL) *
-            </label>
-            <input
-              type="text"
-              required
-              placeholder="https://xyzcompany.supabase.co"
-              value={supabaseUrl}
-              onChange={(e) => setSupabaseUrl(e.target.value)}
-              className="w-full rounded-xl bg-black border border-white/15 px-3 py-2 text-xs text-white focus:outline-none focus:border-red-500 font-mono"
-            />
+        <div className="glass-panel rounded-3xl p-4 md:p-6 border border-white/10 space-y-3">
+          <div className="flex items-center gap-2 text-sm font-bold text-white">
+            <KeyRound className="w-4 h-4 text-red-500" /> Trocar minha senha
           </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-slate-400 mb-1">
-              Anon / Public API Key (VITE_SUPABASE_ANON_KEY) *
-            </label>
-            <input
-              type="password"
-              required
-              placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-              value={supabaseKey}
-              onChange={(e) => setSupabaseKey(e.target.value)}
-              className="w-full rounded-xl bg-black border border-white/15 px-3 py-2 text-xs text-white focus:outline-none focus:border-red-500 font-mono"
-            />
-            <span className="text-[10px] text-slate-500 mt-1 block">
-              Usada pelo navegador (Frontend) para consultar dados e respeitar as permissões RLS.
-            </span>
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-slate-400 mb-1 flex items-center justify-between">
-              <span>Service Role / Secret Key (SUPABASE_SERVICE_ROLE_KEY)</span>
-              <span className="text-[10px] text-red-400 font-normal">Chave Secreta do Servidor</span>
-            </label>
-            <input
-              type="password"
-              placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9... (service_role)"
-              value={serviceRoleKey}
-              onChange={(e) => setServiceRoleKey(e.target.value)}
-              className="w-full rounded-xl bg-black border border-white/15 px-3 py-2 text-xs text-white focus:outline-none focus:border-red-500 font-mono"
-            />
-            <span className="text-[10px] text-slate-500 mt-1 block">
-              Usada exclusivamente pelo servidor backend para processar webhooks do WhatsApp e enfileirar mensagens.
-            </span>
-          </div>
-
-          <div className="flex justify-end pt-2">
-            <button
-              type="submit"
-              disabled={salvando}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 disabled:opacity-50 text-white font-bold text-xs shadow-lg shadow-red-950/40"
-            >
-              <Save className="w-4 h-4" />
-              {salvando ? "Salvando..." : "Salvar Credenciais e Conectar"}
-            </button>
-          </div>
-        </form>
-      </div>
-
-      {/* Script SQL Master */}
-      <div className="glass-panel rounded-3xl p-6 border border-white/10 space-y-4">
-        <div className="flex items-center gap-2 text-sm font-bold text-white">
-          <Terminal className="w-4 h-4 text-red-500" />
-          <span>Script SQL de Instalação do Banco</span>
+          <NovaSenhaForm />
         </div>
 
-        <p className="text-xs text-slate-400 leading-relaxed">
-          O arquivo <code className="text-red-400 font-mono">banco-instalar-completo.sql</code> contém todas as 15 tabelas, 18 funções com RLS e gatilhos consolidados. Para executar no seu Supabase:
-        </p>
+        <div className="glass-panel rounded-3xl p-4 md:p-6 border border-white/10 space-y-3">
+          <div className="flex items-center gap-2 text-sm font-bold text-white">
+            <Building2 className="w-4 h-4 text-red-500" /> Empresas com acesso
+          </div>
+          {partners.length === 0 ? (
+            <p className="text-xs text-slate-400">Nenhuma empresa vinculada.</p>
+          ) : (
+            <ul className="text-xs text-slate-200 space-y-1.5">
+              {partners.map((p) => (
+                <li key={p.id}>{p.nome}</li>
+              ))}
+            </ul>
+          )}
+        </div>
 
-        <ol className="list-decimal list-inside text-xs text-slate-300 space-y-1.5 pl-1">
-          <li>Abra o painel do seu projeto no Supabase &gt; <strong>SQL Editor</strong>.</li>
-          <li>Cole o conteúdo do arquivo <code className="text-red-400 font-mono">banco-instalar-completo.sql</code>.</li>
-          <li>Clique em <strong>Run</strong> para criar toda a estrutura em uma única transação.</li>
-        </ol>
-
-        <button
-          onClick={copiarComandoSql}
-          className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-black hover:bg-[#181820] text-white text-xs font-semibold border border-white/10 hover:border-red-500/40 transition"
-        >
-          <Copy className="w-3.5 h-3.5 text-red-500" />
-          Copiar Comando de Instalação psql
-        </button>
+        <div className="glass-panel rounded-3xl p-4 md:p-6 border border-white/10 space-y-3">
+          <div className="flex items-center gap-2 text-sm font-bold text-white">
+            <Database className="w-4 h-4 text-red-500" /> Projeto
+          </div>
+          <Linha rotulo="Supabase (URL pública)">
+            <code className="font-mono text-red-400">{supabaseUrlPublica}</code>
+          </Linha>
+          <p className="text-[11px] text-slate-500 leading-relaxed">
+            As chaves do banco ficam só nas variáveis de ambiente do servidor e do build; não são configuradas por
+            esta tela.
+          </p>
+        </div>
       </div>
+
+      {empresasDoDono.map((p) => (
+        <PrivacidadeMentor key={p.id} partnerId={p.id} nomeEmpresa={p.nome} ehDono />
+      ))}
     </div>
   );
 };

@@ -1,3 +1,1 @@
-import { supabase, updateSupabaseConfig } from "@/lib/supabase";
-
-export { supabase, updateSupabaseConfig };
+export { supabase, supabaseConfigurado } from "@/lib/supabase";
